@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TenantAlpha — CRE Tenant ROI Calculator
 
-## Getting Started
+A professional web application for commercial real estate brokers to compare 2–5 lease options side-by-side with full ROI analysis, AI-powered recommendations (Claude), and exportable PDF reports.
 
-First, run the development server:
+## Features
+
+- **Multi-option comparison** — enter up to 5 lease options with 20+ fields each (rent, escalations, TI allowance, OpEx, free rent, parking, and more)
+- **Full calculation engine** — NPV of costs, effective rent/SF, annual cash flows, payback period, revenue as % of rent, cost per employee
+- **AI assistant** — streaming executive summary + interactive Q&A chat powered by Anthropic Claude
+- **PDF export** — professional client-ready reports with cover page, metrics tables, charts, and AI recommendation
+- **Saved leases** — store historical lease data for future reference and reuse in new deals
+- **Broker profile** — custom branding (logo, brokerage name) embedded in PDF exports
+- **Mobile-first** — fully responsive from 375px upward
+
+## Tech Stack
+
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 16 (App Router, TypeScript) |
+| Styling | Tailwind CSS v4 |
+| Charts | Recharts |
+| Database | PostgreSQL (Google Cloud SQL) |
+| ORM | Prisma v7 + `@prisma/adapter-pg` |
+| Auth | Clerk |
+| AI | Vercel AI SDK v6 + `@ai-sdk/anthropic` |
+| PDF | `@react-pdf/renderer` (server-side) |
+| Forms | React Hook Form + Zod |
+| File Storage | Google Cloud Storage |
+| Hosting | Vercel |
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL database (local or Cloud SQL)
+- Clerk account
+- Anthropic API key
+
+### Setup
 
 ```bash
+# 1. Clone and install
+git clone https://github.com/DrekStyler/TenantAlpha.git
+cd TenantAlpha
+npm install
+
+# 2. Copy environment variables
+cp .env.example .env.local
+# Fill in all values in .env.local (see .env.example for reference)
+
+# 3. Run database migrations
+npx prisma migrate dev
+
+# 4. (Optional) Seed sample data
+npx prisma db seed
+
+# 5. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev        # Start development server
+npm run build      # Production build
+npm run test       # Run 49 unit tests (Vitest)
+npx prisma studio  # Browse database
+```
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+See `.env.example` for the full list. Key variables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| `CLERK_SECRET_KEY` | Clerk secret key |
+| `DATABASE_URL` | PostgreSQL connection string (pooled, for queries) |
+| `DIRECT_URL` | PostgreSQL direct connection (for migrations) |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude |
+| `GCS_BUCKET_NAME` | GCS bucket for logo uploads |
+| `GCS_PROJECT_ID` | GCP project ID |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full GCP + Vercel deployment instructions.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── (app)/           # Authenticated routes (dashboard, deals, leases, profile)
+│   ├── (auth)/          # Clerk sign-in / sign-up pages
+│   └── api/             # API routes (deals, calculate, ai, pdf, leases, profile, upload)
+├── components/
+│   ├── ui/              # Primitives (Button, Card, Input, Badge, etc.)
+│   ├── layout/          # AppShell, Sidebar, MobileNav
+│   ├── deals/           # DealCard, DealSetupForm
+│   ├── options/         # OptionTabs, OptionForm
+│   ├── results/         # ResultsDashboard, charts, tables
+│   ├── ai/              # AISummary, AIChatWindow
+│   └── pdf/             # PDFDocument and section components
+├── engine/              # Pure calculation functions (zero framework deps)
+├── hooks/               # usePDFExport
+├── lib/                 # prisma, ai, formatters, api helpers
+└── schemas/             # Zod validation schemas
+```
+
+## License
+
+Private — all rights reserved.

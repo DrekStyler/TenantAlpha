@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── User Profile ───────────────────────────────────────────────
+
+model UserProfile {
+  id            String   @id @default(cuid())
+  clerkUserId   String   @unique @map("clerk_user_id")
+  email         String
+  name          String?
+  brokerageName String?  @map("brokerage_name")
+  phone         String?
+  logoUrl       String?  @map("logo_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  deals       Deal[]
+  savedLeases SavedLease[]
+
+  @@map("user_profiles")
+}
+
+// ─── Deal ───────────────────────────────────────────────────────
+
+enum PropertyType {
+  OFFICE
+  RETAIL
+  INDUSTRIAL
+  FLEX
+  OTHER
+}
+
+enum DealStatus {
+  DRAFT
+  CALCULATED
+  EXPORTED
+  ARCHIVED
+}
+
+model Deal {
+  id           String       @id @default(cuid())
+  userId       String       @map("user_id")
+  dealName     String       @map("deal_name")
+  clientName   String?      @map("client_name")
+  propertyType PropertyType @default(OFFICE) @map("property_type")
+  status       DealStatus   @default(DRAFT)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  user      UserProfile  @relation(fields: [userId], references: [clerkUserId])
+  options   LeaseOption[]
+  aiSummary AISummary?
+
+  @@index([userId])
+  @@map("deals")
+}
+
+// ─── Lease Option ───────────────────────────────────────────────
+
+enum EscalationType {
+  FIXED_PERCENT
+  CPI
+}
+
+enum FreeRentType {
+  ABATED
+  DEFERRED
+}
+
+enum RentStructure {
+  GROSS
+  NNN
+  MODIFIED_GROSS
+}
+
+enum ExistingCondition {
+  SHELL
+  SECOND_GEN
+  TURNKEY
+  AS_IS
+}
+
+model LeaseOption {
+  id        String @id @default(cuid())
+  dealId    String @map("deal_id")
+  sortOrder Int    @default(0) @map("sort_order")
+
+  // Identification
+  optionName      String       @map("option_name")
+  propertyAddress String?      @map("property_address")
+  propertyType    PropertyType? @map("property_type")
+
+  // Space
+  rentableSF Float  @map("rentable_sf")
+  usableSF   Float? @map("usable_sf")
+  loadFactor Float? @map("load_factor")
+
+  // Term
+  leaseCommencementDate DateTime? @map("lease_commencement_date")
+  termMonths            Int       @map("term_months")
+
+  // Rent
+  baseRentY1        Float          @map("base_rent_y1")
+  escalationType    EscalationType @default(FIXED_PERCENT) @map("escalation_type")
+  escalationPercent Float          @default(3.0) @map("escalation_percent")
+  cpiAssumedPercent Float?         @map("cpi_assumed_percent")
+
+  // Free Rent
+  freeRentMonths Int          @default(0) @map("free_rent_months")
+  freeRentType   FreeRentType @default(ABATED) @map("free_rent_type")
+
+  // Structure
+  rentStructure RentStructure @default(GROSS) @map("rent_structure")
+
+  // Operating Expenses
+  opExPerSF      Float? @map("opex_per_sf")
+  opExEscalation Float? @map("opex_escalation")
+  propertyTax    Float? @map("property_tax")
+
+  // Additional Costs
+  parkingCostMonthly Float? @map("parking_cost_monthly")
+  otherMonthlyFees   Float? @map("other_monthly_fees")
+
+  // Tenant Improvements
+  tiAllowance           Float?             @map("ti_allowance")
+  estimatedBuildoutCost Float?             @map("estimated_buildout_cost")
+  existingCondition     ExistingCondition? @map("existing_condition")
+
+  // Financial Context
+  discountRate          Float  @default(8.0) @map("discount_rate")
+  annualRevenue         Float? @map("annual_revenue")
+  employees             Int?
+  expectedRevenueGrowth Float? @map("expected_revenue_growth")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@map("lease_options")
+}
+
+// ─── Saved Lease (Historical Records) ───────────────────────────
+
+model SavedLease {
+  id              String        @id @default(cuid())
+  userId          String        @map("user_id")
+  leaseName       String        @map("lease_name")
+  tenantName      String?       @map("tenant_name")
+  propertyAddress String?       @map("property_address")
+  propertyType    PropertyType? @map("property_type")
+  rentableSF      Float         @map("rentable_sf")
+  termMonths      Int           @map("term_months")
+  baseRentY1      Float         @map("base_rent_y1")
+  escalationType  EscalationType @default(FIXED_PERCENT) @map("escalation_type")
+  escalationPercent Float       @default(3.0) @map("escalation_percent")
+  rentStructure   RentStructure @default(GROSS) @map("rent_structure")
+  tiAllowance     Float?        @map("ti_allowance")
+  signedDate      DateTime?     @map("signed_date")
+  notes           String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user UserProfile @relation(fields: [userId], references: [clerkUserId])
+
+  @@index([userId])
+  @@map("saved_leases")
+}
+
+// ─── AI Summary ─────────────────────────────────────────────────
+
+model AISummary {
+  id              String   @id @default(cuid())
+  dealId          String   @unique @map("deal_id")
+  summaryText     String   @map("summary_text") @db.Text
+  recommendations String?  @db.Text
+  generatedAt     DateTime @default(now()) @map("generated_at")
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@map("ai_summaries")
+}

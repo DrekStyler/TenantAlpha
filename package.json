@@ -1,26 +1,50 @@
 {
-  "name": "tenant-alpha-init",
+  "name": "tenant-alpha",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.53",
+    "@ai-sdk/react": "^3.0.111",
+    "@clerk/nextjs": "^6.39.0",
+    "@google-cloud/storage": "^7.19.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
+    "@react-pdf/renderer": "^4.3.2",
+    "ai": "^6.0.109",
+    "date-fns": "^4.1.0",
     "next": "16.1.6",
+    "pg": "^8.19.0",
+    "prisma": "^7.4.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.2",
+    "recharts": "^3.7.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

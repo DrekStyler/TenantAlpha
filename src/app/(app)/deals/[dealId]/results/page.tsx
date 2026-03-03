@@ -92,21 +92,19 @@ export default function ResultsPage({
         <div className="flex gap-2">
           <Button
             variant="secondary"
-            size="sm"
             onClick={() => router.push(`/deals/${dealId}/edit`)}
           >
             ← Edit Options
           </Button>
           <Button
             variant="secondary"
-            size="sm"
             onClick={handleRecalculate}
             loading={recalculating}
           >
             Recalculate
           </Button>
           {results && (
-            <Button size="sm" onClick={exportPDF} loading={exporting}>
+            <Button onClick={exportPDF} loading={exporting}>
               Export PDF ↓
             </Button>
           )}

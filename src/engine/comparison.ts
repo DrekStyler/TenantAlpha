@@ -26,12 +26,13 @@ export function compareOptions(
   const byNPV = [...options].sort((a, b) => a.npvOfCosts - b.npvOfCosts);
   const rankedByNPV = byNPV.map((o) => o.optionName);
 
-  // Best value = lowest NPV
-  const bestOption = byNPV[0];
-  const bestValueOption = bestOption.optionName;
+  // Best value = lowest NPV — but only declare a winner if not tied
+  const hasTie =
+    byNPV.length >= 2 &&
+    Math.abs(byNPV[0].npvOfCosts - byNPV[1].npvOfCosts) < 1;
 
-  // Generate reasons for the recommendation
-  const bestValueReasons = generateReasons(bestOption, options);
+  const bestValueOption = hasTie ? "" : byNPV[0].optionName;
+  const bestValueReasons = hasTie ? [] : generateReasons(byNPV[0], options);
 
   return {
     options,

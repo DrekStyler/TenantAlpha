@@ -1,8 +1,75 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { ComparisonResult } from "@/engine/types";
 import { Spinner } from "@/components/ui/Spinner";
+
+function renderInline(text: string): React.ReactNode {
+  // Handle **bold** and *italic*
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+  const bulletBuffer: string[] = [];
+  let key = 0;
+
+  function flushBullets() {
+    if (bulletBuffer.length === 0) return;
+    nodes.push(
+      <ul key={key++} className="mb-3 ml-4 list-disc space-y-1">
+        {bulletBuffer.map((b, i) => (
+          <li key={i} className="leading-relaxed">{renderInline(b)}</li>
+        ))}
+      </ul>
+    );
+    bulletBuffer.length = 0;
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushBullets();
+      continue;
+    }
+    if (trimmed.startsWith("### ")) {
+      flushBullets();
+      nodes.push(
+        <h3 key={key++} className="mb-1 mt-4 text-sm font-semibold text-navy-900">
+          {renderInline(trimmed.slice(4))}
+        </h3>
+      );
+    } else if (trimmed.startsWith("## ")) {
+      flushBullets();
+      nodes.push(
+        <h2 key={key++} className="mb-1 mt-4 text-base font-semibold text-navy-900">
+          {renderInline(trimmed.slice(3))}
+        </h2>
+      );
+    } else if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+      bulletBuffer.push(trimmed.slice(2));
+    } else {
+      flushBullets();
+      nodes.push(
+        <p key={key++} className="mb-2 leading-relaxed">
+          {renderInline(trimmed)}
+        </p>
+      );
+    }
+  }
+  flushBullets();
+  return nodes;
+}
 
 interface AISummaryProps {
   dealId: string;
@@ -79,12 +146,7 @@ export function AISummary({ dealId, calculationResults }: AISummaryProps) {
 
   return (
     <div className="prose prose-sm max-w-none text-navy-700">
-      {text.split("\n").filter(Boolean).map((para, i) => (
-        <p key={i} className="mb-2 leading-relaxed last:mb-0">
-          {para}
-        </p>
-      ))}
-      {!text && (
+      {text ? renderMarkdown(text) : (
         <p className="text-navy-400 italic">Summary not available.</p>
       )}
     </div>

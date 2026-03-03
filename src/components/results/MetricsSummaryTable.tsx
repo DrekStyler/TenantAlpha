@@ -22,20 +22,29 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
   return (
     <div className="space-y-4">
       {/* Best Value Banner */}
-      <div className="rounded-xl bg-navy-900 px-5 py-4 text-white">
-        <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-navy-300">
-          Best Value
+      {bestValueOption ? (
+        <div className="rounded-xl bg-navy-900 px-5 py-4 text-white">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-navy-300">
+            Best Value
+          </div>
+          <div className="mb-3 text-xl font-bold">{bestValueOption}</div>
+          <ul className="space-y-1">
+            {bestValueReasons.map((reason, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-navy-100">
+                <span className="mt-0.5 shrink-0 font-bold text-gold-400">✓</span>
+                {reason}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="mb-3 text-xl font-bold">{bestValueOption}</div>
-        <ul className="space-y-1">
-          {bestValueReasons.map((reason, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-navy-100">
-              <span className="mt-0.5 shrink-0 font-bold text-gold-400">✓</span>
-              {reason}
-            </li>
-          ))}
-        </ul>
-      </div>
+      ) : (
+        <div className="rounded-xl bg-navy-700 px-5 py-4 text-white">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-navy-300">
+            Result
+          </div>
+          <div className="text-xl font-bold">Options are tied — no clear winner on NPV</div>
+        </div>
+      )}
 
       {/* Metrics Table */}
       <div className="-mx-1 overflow-x-auto">

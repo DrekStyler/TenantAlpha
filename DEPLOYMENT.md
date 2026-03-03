@@ -47,8 +47,7 @@ gcloud sql instances create tenantalpha-db \
   --region=us-central1 \
   --storage-type=SSD \
   --storage-size=10GB \
-  --backup-start-time=03:00 \
-  --enable-bin-log
+  --backup-start-time=03:00
 ```
 
 > **Note:** `db-f1-micro` is the smallest (cheapest) tier — sufficient for early production. Upgrade to `db-g1-small` or higher when traffic grows.
@@ -134,7 +133,7 @@ gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
 
 # Create and download a JSON key
 gcloud iam service-accounts keys create ./gcs-key.json \
-  --iam-account=tenantalpha-storage@YOUR_PROJECT_ID.iam.gserviceaccount.com
+  --iam-account=tenantalpha-storage@tenent-alpha.iam.gserviceaccount.com
 ```
 
 > **Keep `gcs-key.json` secret** — never commit it. Add it to `.gitignore` if needed. You'll paste the contents into a Vercel environment variable.
@@ -223,19 +222,33 @@ In Clerk Dashboard → **Domains**, add:
 
 ---
 
-## 6. Prisma Migrations
+## 6. Prisma — Initial Schema Push
 
-Run migrations against your Cloud SQL instance **before** deploying:
+Since no migration history exists yet, use `prisma db push` for the **first deployment** to create all tables directly from the schema:
 
 ```bash
-# From your local machine with DIRECT_URL set to Cloud SQL
+# From your local machine with DATABASE_URL pointing to Cloud SQL
 export DIRECT_URL="postgresql://tenantalpha_user:PASSWORD@PUBLIC_IP:5432/tenantalpha?sslmode=require"
 export DATABASE_URL="$DIRECT_URL"
 
-npx prisma migrate deploy
+cd ~/Desktop/projects/tenant-alpha
+npx prisma db push
 ```
 
-> Use `migrate deploy` (not `migrate dev`) in production — it applies existing migrations without prompting.
+> `prisma db push` is the correct command for the initial setup — it syncs the schema to the database without requiring migration files.
+
+### Future schema changes
+
+After the initial push, use migrations for all subsequent schema changes so changes are tracked and reproducible:
+
+```bash
+# 1. Make changes to prisma/schema.prisma, then create a migration locally
+npx prisma migrate dev --name describe_your_change
+
+# 2. Deploy that migration to production Cloud SQL
+export DATABASE_URL="postgresql://tenantalpha_user:PASSWORD@PUBLIC_IP:5432/tenantalpha?sslmode=require"
+npx prisma migrate deploy
+```
 
 ### Seed sample data (optional)
 

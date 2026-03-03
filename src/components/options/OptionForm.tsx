@@ -89,16 +89,30 @@ export function OptionForm({
     }
   };
 
-  // Track form as "initialized" after initial data loads
+  // Track form as "initialized" after initial data loads.
+  // Convert null (from Prisma) to undefined so optional Zod fields pass.
   useEffect(() => {
-    if (initialData) reset({ ...initialData } as LeaseOptionFormData);
+    if (initialData) {
+      const cleaned = Object.fromEntries(
+        Object.entries(initialData as Record<string, unknown>).map(([k, v]) => [
+          k,
+          v === null ? undefined : v,
+        ])
+      ) as LeaseOptionFormData;
+      reset(cleaned);
+    }
   }, [initialData, reset]);
 
   const isNNN =
     rentStructure === "NNN" || rentStructure === "MODIFIED_GROSS";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit, () =>
+        setSaveMsg("Please fix the errors highlighted below.")
+      )}
+      className="space-y-6"
+    >
       {/* Basic Fields */}
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-400">
@@ -150,9 +164,12 @@ export function OptionForm({
             <input
               type="number"
               placeholder="60"
-              className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500 ${errors.termMonths ? "border-red-400" : "border-navy-200"}`}
               {...register("termMonths", { valueAsNumber: true })}
             />
+            {errors.termMonths && (
+              <p className="text-xs text-red-500">{errors.termMonths.message}</p>
+            )}
           </div>
         </div>
       </section>
@@ -174,10 +191,13 @@ export function OptionForm({
                 type="number"
                 step="0.01"
                 placeholder="45.00"
-                className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                className={`w-full rounded-lg border bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500 ${errors.baseRentY1 ? "border-red-400" : "border-navy-200"}`}
                 {...register("baseRentY1", { valueAsNumber: true })}
               />
             </div>
+            {errors.baseRentY1 && (
+              <p className="text-xs text-red-500">{errors.baseRentY1.message}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">

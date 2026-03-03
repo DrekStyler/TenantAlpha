@@ -105,7 +105,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                     </div>
                   </td>
                   <td className="px-3 py-3 text-right text-navy-700">
-                    {opt.rentableSF.toLocaleString()}
+                    {opt.rentableSF != null ? opt.rentableSF.toLocaleString() : "—"}
                   </td>
                   <td className="px-3 py-3 text-right text-navy-700">
                     {formatCurrency(opt.totalOccupancyCost)}

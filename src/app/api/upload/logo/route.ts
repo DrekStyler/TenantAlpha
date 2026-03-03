@@ -3,9 +3,6 @@ import { Storage } from "@google-cloud/storage";
 import { prisma } from "@/lib/prisma";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 
-const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON!);
-const storage = new Storage({ credentials, projectId: process.env.GCS_PROJECT_ID });
-
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();
@@ -19,13 +16,18 @@ export async function POST(req: Request) {
   if (file.size > 5 * 1024 * 1024)
     return badRequest("File must be under 5MB");
 
+  // Parse GCS credentials at request time (not module load time)
+  // so the build doesn't fail when env vars are absent
+  const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  const credentials = credentialsJson ? JSON.parse(credentialsJson) : undefined;
+  const storage = new Storage({
+    credentials,
+    projectId: process.env.GCS_PROJECT_ID,
+  });
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const ext = file.name.split(".").pop() ?? "png";
   const filename = `logos/${userId}-${Date.now()}.${ext}`;
-
-  const storage = new Storage({
-    projectId: process.env.GCS_PROJECT_ID,
-  });
 
   const bucket = storage.bucket(process.env.GCS_BUCKET_NAME!);
   const gcsFile = bucket.file(filename);

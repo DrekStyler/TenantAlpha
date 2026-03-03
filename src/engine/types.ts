@@ -49,6 +49,8 @@ export interface AnnualCashFlow {
 
 export interface OptionMetrics {
   optionName: string;
+  rentableSF: number;
+  termMonths: number;
   totalOccupancyCost: number;
   effectiveRentPerSF: number;
   effectiveRentPerSFWithTI: number;

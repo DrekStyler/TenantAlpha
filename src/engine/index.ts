@@ -115,6 +115,8 @@ export function calculateOptionMetrics(
 
   return {
     optionName: input.optionName,
+    rentableSF: input.rentableSF,
+    termMonths: input.termMonths,
     totalOccupancyCost,
     effectiveRentPerSF,
     effectiveRentPerSFWithTI,

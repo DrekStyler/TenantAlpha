@@ -48,11 +48,14 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
 
       {/* Metrics Table */}
       <div className="-mx-1 overflow-x-auto">
-        <table className="w-full min-w-[580px] text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b-2 border-navy-100">
               <th className="py-2.5 pl-2 pr-3 text-left font-semibold text-navy-600">
                 Option
+              </th>
+              <th className="px-3 py-2.5 text-right font-semibold text-navy-600">
+                Sq Ft
               </th>
               <th className="px-3 py-2.5 text-right font-semibold text-navy-600">
                 Total Cost
@@ -98,6 +101,9 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                       </span>
                       {isBest && <Badge variant="gold">Best</Badge>}
                     </div>
+                  </td>
+                  <td className="px-3 py-3 text-right text-navy-700">
+                    {opt.rentableSF.toLocaleString()}
                   </td>
                   <td className="px-3 py-3 text-right text-navy-700">
                     {formatCurrency(opt.totalOccupancyCost)}

@@ -9,9 +9,11 @@ interface MetricsSummaryTableProps {
 
 function RankBadge({ rank }: { rank: number }) {
   return (
-    <Badge variant={rank === 1 ? "success" : "default"} className="ml-1 text-xs">
-      #{rank}
-    </Badge>
+    <span title={rank === 1 ? "Lowest cost (best)" : `Ranked #${rank} by cost`}>
+      <Badge variant={rank === 1 ? "success" : "default"} className="ml-1 text-xs">
+        #{rank}
+      </Badge>
+    </span>
   );
 }
 
@@ -61,7 +63,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                 Total Cost
               </th>
               <th className="px-3 py-2.5 text-right font-semibold text-navy-600">
-                NPV
+                NPV of Costs
               </th>
               <th className="px-3 py-2.5 text-right font-semibold text-navy-600">
                 Eff. Rent/SF

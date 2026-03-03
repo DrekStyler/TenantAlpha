@@ -86,7 +86,7 @@ export default function ProfilePage() {
     setUploading(true);
     setUploadError("");
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("logo", file);
 
     const res = await fetch("/api/upload/logo", {
       method: "POST",

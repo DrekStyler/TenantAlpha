@@ -5,6 +5,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { PDFDocument } from "@/components/pdf/PDFDocument";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();

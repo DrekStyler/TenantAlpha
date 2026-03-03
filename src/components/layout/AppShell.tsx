@@ -51,11 +51,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               TenantAlpha
             </span>
           </Link>
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex min-h-[calc(100vh-3.5rem)]">
         {/* Desktop Sidebar */}
         <aside className="hidden w-56 shrink-0 border-r border-navy-100 bg-white lg:block">
           <nav className="flex flex-col gap-1 p-3">

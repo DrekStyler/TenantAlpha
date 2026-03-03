@@ -59,53 +59,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="border-t border-navy-100 bg-navy-50 px-4 py-16">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-2xl font-bold text-navy-900">
-            Everything You Need for Lease Analysis
-          </h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: "Side-by-Side Comparison",
-                desc: "Enter up to 5 lease options and see them ranked by effective rent, NPV, and total occupancy cost.",
-              },
-              {
-                title: "AI-Powered Insights",
-                desc: "Get plain-English analysis of risks, trade-offs, and recommendations powered by advanced AI.",
-              },
-              {
-                title: "Professional PDF Reports",
-                desc: "Export branded, C-suite-ready reports with charts, metrics, and AI recommendations in one click.",
-              },
-              {
-                title: "Financial Metrics",
-                desc: "NPV, effective rent, payback period, cost per employee, rent-to-revenue ratio, and more.",
-              },
-              {
-                title: "Cash Flow Visualization",
-                desc: "Interactive charts showing year-by-year costs, escalation impact, and comparison across options.",
-              },
-              {
-                title: "Save & Resume",
-                desc: "Save deal analyses and return to them anytime. Store signed lease records for future reference.",
-              },
-            ].map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-xl border border-navy-100 bg-white p-6"
-              >
-                <h3 className="text-lg font-semibold text-navy-900">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm text-navy-500">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Bottom CTA */}
       <section className="px-4 py-16 text-center">
         <h2 className="text-2xl font-bold text-navy-900">

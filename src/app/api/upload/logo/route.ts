@@ -3,6 +3,9 @@ import { Storage } from "@google-cloud/storage";
 import { prisma } from "@/lib/prisma";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 
+const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON!);
+const storage = new Storage({ credentials, projectId: process.env.GCS_PROJECT_ID });
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();

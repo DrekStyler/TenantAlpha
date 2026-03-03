@@ -25,7 +25,7 @@ export default function ResultsPage({
   const [deal, setDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
-  const { exportPDF, exporting } = usePDFExport({
+  const { exportPDF, exporting, error } = usePDFExport({
     dealId,
     calculationResults: results ?? { options: [], rankedByEffectiveRent: [], rankedByNPV: [], bestValueOption: "", bestValueReasons: [] },
   });
@@ -110,6 +110,13 @@ export default function ResultsPage({
           )}
         </div>
       </div>
+
+      {/* PDF export error */}
+      {error && (
+        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Results or empty state */}
       {results ? (

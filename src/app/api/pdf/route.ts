@@ -48,8 +48,19 @@ export async function POST(req: Request) {
     brokerProfile: profile,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfBuffer = await renderToBuffer(pdfElement as any);
+  let pdfBuffer: Buffer;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pdfBuffer = await renderToBuffer(pdfElement as any);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[pdf] renderToBuffer failed:", message);
+    return new Response(JSON.stringify({ error: `PDF generation failed: ${message}` }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const uint8 = new Uint8Array(pdfBuffer);
 
   return new Response(uint8, {

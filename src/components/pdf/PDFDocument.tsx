@@ -5,28 +5,11 @@ import {
   Text,
   Image,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import type { ComparisonResult } from "@/engine/types";
 
-// Register Inter font (system fallback is fine for now)
-Font.register({
-  family: "Inter",
-  fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff",
-      fontWeight: 600,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff",
-      fontWeight: 700,
-    },
-  ],
-});
+// Using PDF built-in Helvetica — no network fetch required.
+// External font CDN calls (Google Fonts) are unreliable in serverless functions.
 
 const colors = {
   navy: "#102a43",
@@ -41,10 +24,10 @@ const colors = {
 };
 
 const s = StyleSheet.create({
-  page: { fontFamily: "Inter", paddingHorizontal: 40, paddingVertical: 36, color: colors.text },
+  page: { fontFamily: "Helvetica", paddingHorizontal: 40, paddingVertical: 36, color: colors.text },
 
   // Cover
-  coverPage: { fontFamily: "Inter", paddingHorizontal: 0, paddingVertical: 0 },
+  coverPage: { fontFamily: "Helvetica", paddingHorizontal: 0, paddingVertical: 0 },
   coverHero: { backgroundColor: colors.navy, padding: 48, minHeight: 300, justifyContent: "flex-end" },
   coverTag: { color: colors.gold, fontSize: 10, fontWeight: 600, letterSpacing: 2, marginBottom: 12, textTransform: "uppercase" },
   coverTitle: { color: colors.white, fontSize: 26, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 },
@@ -201,7 +184,7 @@ export function PDFDocument({
         {/* AI Summary */}
         {aiSummary && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>AI Advisor Commentary</Text>
+            <Text style={s.sectionTitle}>Commentary</Text>
             <Text style={s.summaryText}>{aiSummary}</Text>
           </View>
         )}

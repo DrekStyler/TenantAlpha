@@ -68,8 +68,7 @@ export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboard
 
           <Card padding="sm">
             <CardHeader
-              title="AI Executive Summary"
-              subtitle="Powered by Claude"
+              title="Executive Summary"
             />
             <AISummary dealId={dealId} calculationResults={results} />
           </Card>
@@ -112,7 +111,7 @@ export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboard
         <Card>
           <CardHeader
             title="AI Lease Advisor"
-            subtitle="Ask questions about this analysis — powered by Claude"
+            subtitle="Ask questions about this analysis"
           />
           <AIChatWindow dealId={dealId} calculationResults={results} />
         </Card>

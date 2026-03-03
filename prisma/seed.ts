@@ -4,7 +4,14 @@ import { PrismaPg } from "@prisma/adapter-pg";
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL environment variable is required");
-  const adapter = new PrismaPg({ connectionString, ssl: { rejectUnauthorized: false } });
+  // Strip sslmode from URL — pg-connection-string v2 treats 'require' as
+  // verify-full, overriding the ssl pool option. Handle SSL explicitly instead.
+  const url = new URL(connectionString);
+  url.searchParams.delete("sslmode");
+  const adapter = new PrismaPg({
+    connectionString: url.toString(),
+    ssl: { rejectUnauthorized: false },
+  });
   return new PrismaClient({ adapter });
 }
 

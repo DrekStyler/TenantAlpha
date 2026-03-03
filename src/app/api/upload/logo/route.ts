@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const formData = await req.formData();

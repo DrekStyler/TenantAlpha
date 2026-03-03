@@ -17,7 +17,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.53",
     "@ai-sdk/react": "^3.0.111",
-    "@clerk/nextjs": "^6.39.0",
+    "@clerk/nextjs": "^5.7.5",
     "@google-cloud/storage": "^7.19.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.4.2",

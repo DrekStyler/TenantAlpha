@@ -14,7 +14,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ dealId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
   const { dealId } = await params;
 
@@ -34,7 +34,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ dealId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
   const { dealId } = await params;
 

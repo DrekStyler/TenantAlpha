@@ -6,7 +6,7 @@ import React from "react";
 import { PDFDocument } from "@/components/pdf/PDFDocument";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const body = await req.json();

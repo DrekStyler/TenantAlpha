@@ -4,7 +4,7 @@ import { savedLeaseSchema } from "@/schemas/lease";
 import { ok, unauthorized, badRequest } from "@/lib/api";
 
 export async function GET() {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const leases = await prisma.savedLease.findMany({
@@ -16,7 +16,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const body = await req.json();

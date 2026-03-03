@@ -17,7 +17,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ dealId: string; optionId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
   const { dealId, optionId } = await params;
 
@@ -32,7 +32,7 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ dealId: string; optionId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
   const { dealId, optionId } = await params;
 
@@ -62,7 +62,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ dealId: string; optionId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
   const { dealId, optionId } = await params;
 

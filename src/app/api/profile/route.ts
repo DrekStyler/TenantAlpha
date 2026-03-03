@@ -4,7 +4,7 @@ import { profileSchema } from "@/schemas/profile";
 import { ok, unauthorized, badRequest } from "@/lib/api";
 
 export async function GET() {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const clerkUser = await currentUser();
@@ -23,7 +23,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const { userId } = await auth();
+  const { userId } = auth();
   if (!userId) return unauthorized();
 
   const body = await req.json();

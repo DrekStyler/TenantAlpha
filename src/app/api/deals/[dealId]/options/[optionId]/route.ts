@@ -41,7 +41,15 @@ export async function PUT(
   if (existing === "forbidden") return forbidden();
 
   const body = await req.json();
-  const parsed = leaseOptionSchema.partial().safeParse(body);
+  // Prisma returns null for unset optional fields; the existingCondition
+  // select sends "" for its placeholder option. Both fail .optional() enum
+  // validation — strip them so Prisma leaves unset fields unchanged.
+  const sanitized = Object.fromEntries(
+    Object.entries(body as Record<string, unknown>).filter(
+      ([, v]) => v !== null && v !== ""
+    )
+  );
+  const parsed = leaseOptionSchema.partial().safeParse(sanitized);
   if (!parsed.success) return badRequest(parsed.error.message);
 
   const updated = await prisma.leaseOption.update({

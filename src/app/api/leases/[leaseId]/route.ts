@@ -14,7 +14,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ leaseId: string }> }
 ) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return unauthorized();
   const { leaseId } = await params;
 
@@ -29,7 +29,7 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ leaseId: string }> }
 ) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return unauthorized();
   const { leaseId } = await params;
 
@@ -58,7 +58,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ leaseId: string }> }
 ) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return unauthorized();
   const { leaseId } = await params;
 

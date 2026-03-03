@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 
-export function getAuthUserId(): string {
-  const { userId } = auth();
+export async function getAuthUserId(): Promise<string> {
+  const { userId } = await auth();
   if (!userId) {
     throw new Error("Unauthorized");
   }

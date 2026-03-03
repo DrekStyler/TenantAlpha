@@ -6,7 +6,7 @@ import { CRE_ADVISOR_SYSTEM_PROMPT, buildDealContext } from "@/lib/ai";
 import { unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
 
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return unauthorized();
 
   const { dealId, messages, calculationResults } = await req.json();

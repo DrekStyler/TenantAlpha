@@ -5,7 +5,7 @@ import type { LeaseOptionInput, CalculationConfig } from "@/engine/types";
 import { ok, unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
 
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return unauthorized();
 
   const body = await req.json();

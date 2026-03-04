@@ -21,6 +21,7 @@ interface ClientTableProps {
   onCopyLink: (token: string) => void;
   onEdit: (client: ClientRow) => void;
   onDelete: (id: string) => void;
+  onViewQuestionnaire: (clientId: string) => void;
 }
 
 const sizeLabels: Record<string, string> = {
@@ -36,6 +37,7 @@ export function ClientTable({
   onCopyLink,
   onEdit,
   onDelete,
+  onViewQuestionnaire,
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
@@ -105,7 +107,18 @@ export function ClientTable({
               </td>
               <td className="px-4 py-3.5 text-center">
                 {client.questionnaireCompletedAt ? (
-                  <Badge variant="success">Completed</Badge>
+                  <button
+                    type="button"
+                    onClick={() => onViewQuestionnaire(client.id)}
+                    title="View questionnaire responses"
+                  >
+                    <Badge
+                      variant="success"
+                      className="cursor-pointer hover:bg-green-200 transition-colors"
+                    >
+                      Completed ↗
+                    </Badge>
+                  </button>
                 ) : (
                   <Badge variant="warning">Pending</Badge>
                 )}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DealCard } from "@/components/deals/DealCard";
 import { ClientTable } from "@/components/clients/ClientTable";
 import { ClientModal } from "@/components/clients/ClientModal";
+import { QuestionnaireModal } from "@/components/clients/QuestionnaireModal";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -40,6 +41,8 @@ export default function DashboardPage() {
   const [showClientModal, setShowClientModal] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientRow | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [questionnaireClient, setQuestionnaireClient] = useState<any | null>(null);
 
   const fetchDeals = async () => {
     const res = await fetch("/api/deals");
@@ -98,6 +101,13 @@ export default function DashboardPage() {
       return;
     await fetch(`/api/clients/${id}`, { method: "DELETE" });
     setClients((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleViewQuestionnaire = async (clientId: string) => {
+    const res = await fetch(`/api/clients/${clientId}`);
+    if (res.ok) {
+      setQuestionnaireClient(await res.json());
+    }
   };
 
   const handleCopyLink = (token: string) => {
@@ -184,6 +194,7 @@ export default function DashboardPage() {
                 setShowClientModal(true);
               }}
               onDelete={handleDeleteClient}
+              onViewQuestionnaire={handleViewQuestionnaire}
             />
           )}
         </div>
@@ -204,6 +215,14 @@ export default function DashboardPage() {
             setShowClientModal(false);
             setEditingClient(null);
           }}
+        />
+      )}
+
+      {/* Questionnaire Responses Modal */}
+      {questionnaireClient && (
+        <QuestionnaireModal
+          client={questionnaireClient}
+          onClose={() => setQuestionnaireClient(null)}
         />
       )}
     </div>

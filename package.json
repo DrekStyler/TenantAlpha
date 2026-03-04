@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed": "node node_modules/.bin/tsx prisma/seed.ts",
+    "db:deploy": "prisma db push && node node_modules/.bin/tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {

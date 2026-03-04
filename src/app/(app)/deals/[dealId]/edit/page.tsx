@@ -104,7 +104,7 @@ export default function EditDealPage({
       const results = await res.json();
       // Store in sessionStorage for results page
       sessionStorage.setItem(`calc-${dealId}`, JSON.stringify(results));
-      router.push(`/deals/${dealId}/results`);
+      router.push(`/deals/${dealId}/negotiate`);
     } catch {
       setCalcError("Calculation failed. Please try again.");
     } finally {

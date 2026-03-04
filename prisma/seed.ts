@@ -8,9 +8,14 @@ function createPrismaClient() {
   // verify-full, overriding the ssl pool option. Handle SSL explicitly instead.
   const url = new URL(connectionString);
   url.searchParams.delete("sslmode");
+
+  const isLocalhost =
+    url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  const ssl = isLocalhost ? false : { rejectUnauthorized: false };
+
   const adapter = new PrismaPg({
     connectionString: url.toString(),
-    ssl: { rejectUnauthorized: false },
+    ...(ssl !== false ? { ssl } : {}),
   });
   return new PrismaClient({ adapter });
 }
@@ -18,9 +23,26 @@ function createPrismaClient() {
 const prisma = createPrismaClient();
 
 async function main() {
-  // ── Demo broker profile ──────────────────────────────────────────
-  const userId = "user_seed_demo";
+  // ── Resolve user ID ────────────────────────────────────────────────
+  // Priority: SEED_USER_ID env var → first existing Clerk user → fallback demo ID
+  let userId = process.env.SEED_USER_ID ?? "";
 
+  if (!userId) {
+    const existingUser = await prisma.userProfile.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+    if (existingUser) {
+      userId = existingUser.clerkUserId;
+      console.log(`ℹ️  Using existing user: ${userId} (${existingUser.email})`);
+    } else {
+      userId = "user_seed_demo";
+      console.log("ℹ️  No existing users found — creating demo profile");
+    }
+  } else {
+    console.log(`ℹ️  Using SEED_USER_ID: ${userId}`);
+  }
+
+  // ── Broker profile (upsert — safe to re-run) ──────────────────────
   await prisma.userProfile.upsert({
     where: { clerkUserId: userId },
     update: {},
@@ -35,7 +57,7 @@ async function main() {
   // ── Deal 1: Acme Corp — Office Relocation ─────────────────────────
   const deal1 = await prisma.deal.upsert({
     where: { id: "seed-deal-acme" },
-    update: {},
+    update: { userId },
     create: {
       id: "seed-deal-acme",
       userId,
@@ -134,7 +156,7 @@ async function main() {
   // ── Deal 2: Brightline Logistics — Industrial Expansion ──────────
   const deal2 = await prisma.deal.upsert({
     where: { id: "seed-deal-brightline" },
-    update: {},
+    update: { userId },
     create: {
       id: "seed-deal-brightline",
       userId,
@@ -206,7 +228,7 @@ async function main() {
   // ── Sample saved leases ───────────────────────────────────────────
   await prisma.savedLease.upsert({
     where: { id: "seed-lease-1" },
-    update: {},
+    update: { userId },
     create: {
       id: "seed-lease-1",
       userId,
@@ -228,7 +250,7 @@ async function main() {
 
   await prisma.savedLease.upsert({
     where: { id: "seed-lease-2" },
-    update: {},
+    update: { userId },
     create: {
       id: "seed-lease-2",
       userId,

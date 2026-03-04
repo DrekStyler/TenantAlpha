@@ -89,9 +89,17 @@ export default function ResultsPage({
             <p className="text-sm text-navy-500">{deal.clientName}</p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
+            size="sm"
+            onClick={() => router.push(`/deals/${dealId}/negotiate`)}
+          >
+            ← Negotiation Planner
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => router.push(`/deals/${dealId}/edit`)}
           >
             ← Edit Options

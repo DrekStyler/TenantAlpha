@@ -20,11 +20,15 @@ function createPrismaClient() {
   const isLocalhost =
     url.hostname === "localhost" || url.hostname === "127.0.0.1";
 
-  // In production, enforce TLS certificate verification (prevents MITM).
   // Locally, skip SSL entirely since the connection is loopback.
+  // For remote hosts, enable SSL but don't verify the certificate — most
+  // managed providers (Neon, Supabase, Railway) use shared certs that
+  // fail strict CA verification. Set DB_SSL_REJECT_UNAUTHORIZED=true to
+  // enforce strict verification if your provider supports it.
+  const strictSSL = process.env.DB_SSL_REJECT_UNAUTHORIZED === "true";
   const ssl = isLocalhost
     ? false
-    : { rejectUnauthorized: isProduction };
+    : { rejectUnauthorized: strictSSL };
 
   const adapter = new PrismaPg({
     connectionString: url.toString(),

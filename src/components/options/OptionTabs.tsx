@@ -12,12 +12,14 @@ interface OptionTabsProps {
     [key: string]: unknown;
   }>;
   onOptionsChange: () => void;
+  dealPropertyType?: string;
 }
 
 export function OptionTabs({
   dealId,
   options,
   onOptionsChange,
+  dealPropertyType,
 }: OptionTabsProps) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -51,6 +53,7 @@ export function OptionTabs({
             initialData={options[activeTab] as Parameters<typeof OptionForm>[0]["initialData"]}
             onSaved={onOptionsChange}
             index={activeTab}
+            dealPropertyType={dealPropertyType}
           />
         )}
       </div>

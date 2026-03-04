@@ -1,75 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComparisonResult } from "@/engine/types";
 import { Spinner } from "@/components/ui/Spinner";
-
-function renderInline(text: string): React.ReactNode {
-  // Handle **bold** and *italic*
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={i}>{part.slice(1, -1)}</em>;
-    }
-    return part;
-  });
-}
-
-function renderMarkdown(text: string): React.ReactNode {
-  const lines = text.split("\n");
-  const nodes: React.ReactNode[] = [];
-  const bulletBuffer: string[] = [];
-  let key = 0;
-
-  function flushBullets() {
-    if (bulletBuffer.length === 0) return;
-    nodes.push(
-      <ul key={key++} className="mb-4 ml-5 list-disc space-y-2">
-        {bulletBuffer.map((b, i) => (
-          <li key={i} className="leading-relaxed text-navy-600">{renderInline(b)}</li>
-        ))}
-      </ul>
-    );
-    bulletBuffer.length = 0;
-  }
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      flushBullets();
-      continue;
-    }
-    if (trimmed.startsWith("### ")) {
-      flushBullets();
-      nodes.push(
-        <h3 key={key++} className="mb-2 mt-6 text-sm font-semibold text-navy-900">
-          {renderInline(trimmed.slice(4))}
-        </h3>
-      );
-    } else if (trimmed.startsWith("## ")) {
-      flushBullets();
-      nodes.push(
-        <h2 key={key++} className="mb-2 mt-6 text-base font-semibold text-navy-900">
-          {renderInline(trimmed.slice(3))}
-        </h2>
-      );
-    } else if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
-      bulletBuffer.push(trimmed.slice(2));
-    } else {
-      flushBullets();
-      nodes.push(
-        <p key={key++} className="mb-3 leading-relaxed text-navy-600">
-          {renderInline(trimmed)}
-        </p>
-      );
-    }
-  }
-  flushBullets();
-  return nodes;
-}
+import { renderMarkdown } from "@/lib/markdown";
 
 interface AISummaryProps {
   dealId: string;

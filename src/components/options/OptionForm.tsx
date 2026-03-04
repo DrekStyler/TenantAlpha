@@ -24,6 +24,7 @@ interface OptionFormProps {
   initialData?: Partial<LeaseOptionFormData>;
   onSaved?: () => void;
   index: number;
+  dealPropertyType?: string;
 }
 
 export function OptionForm({
@@ -32,6 +33,7 @@ export function OptionForm({
   initialData,
   onSaved,
   index,
+  dealPropertyType,
 }: OptionFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,6 +56,7 @@ export function OptionForm({
       rentStructure: "GROSS",
       discountRate: DEFAULT_DISCOUNT_RATE,
       termMonths: 60,
+      ...(dealPropertyType ? { propertyType: dealPropertyType as LeaseOptionFormData["propertyType"] } : {}),
       ...initialData,
     },
   });

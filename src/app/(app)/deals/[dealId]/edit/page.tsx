@@ -12,6 +12,7 @@ interface Deal {
   id: string;
   dealName: string;
   clientName?: string;
+  propertyType?: string;
   options: Array<{ id: string; optionName: string; sortOrder: number; [key: string]: unknown }>;
 }
 
@@ -41,22 +42,39 @@ export default function EditDealPage({
     if (!deal || deal.options.length >= 5) return;
     setAddingOption(true);
     const idx = deal.options.length;
+
+    // Copy first option's values as defaults (except address and name)
+    const firstOpt = deal.options[0] as Record<string, unknown> | undefined;
+    const defaults: Record<string, unknown> = {
+      optionName: `Option ${String.fromCharCode(65 + idx)}`,
+      rentableSF: 5000,
+      termMonths: 60,
+      baseRentY1: 40,
+      escalationType: "FIXED_PERCENT",
+      escalationPercent: 3,
+      freeRentMonths: 0,
+      freeRentType: "ABATED",
+      rentStructure: "GROSS",
+      discountRate: 8,
+      propertyType: deal.propertyType,
+      sortOrder: idx,
+    };
+
+    if (firstOpt && idx > 0) {
+      const SKIP = new Set(["id", "dealId", "createdAt", "updatedAt", "optionName", "propertyAddress", "sortOrder"]);
+      for (const [key, val] of Object.entries(firstOpt)) {
+        if (!SKIP.has(key) && val != null) {
+          defaults[key] = val;
+        }
+      }
+      defaults.optionName = `Option ${String.fromCharCode(65 + idx)}`;
+      defaults.sortOrder = idx;
+    }
+
     const res = await fetch(`/api/deals/${dealId}/options`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        optionName: `Option ${String.fromCharCode(65 + idx)}`,
-        rentableSF: 5000,
-        termMonths: 60,
-        baseRentY1: 40,
-        escalationType: "FIXED_PERCENT",
-        escalationPercent: 3,
-        freeRentMonths: 0,
-        freeRentType: "ABATED",
-        rentStructure: "GROSS",
-        discountRate: 8,
-        sortOrder: idx,
-      }),
+      body: JSON.stringify(defaults),
     });
     if (res.ok) await fetchDeal();
     setAddingOption(false);
@@ -184,6 +202,7 @@ export default function EditDealPage({
             dealId={dealId}
             options={deal.options}
             onOptionsChange={fetchDeal}
+            dealPropertyType={deal.propertyType}
           />
         </Card>
       )}

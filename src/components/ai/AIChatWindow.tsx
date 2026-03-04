@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import type { ComparisonResult } from "@/engine/types";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { renderMarkdown } from "@/lib/markdown";
 
 interface Message {
   id: string;
@@ -130,11 +131,9 @@ export function AIChatWindow({ dealId, calculationResults }: AIChatWindowProps) 
               }`}
             >
               {m.content ? (
-                m.content.split("\n").filter(Boolean).map((line, i) => (
-                  <p key={i} className="mb-1 last:mb-0">
-                    {line}
-                  </p>
-                ))
+                <div className="[&>*:last-child]:mb-0">
+                  {renderMarkdown(m.content)}
+                </div>
               ) : (
                 <Spinner size="sm" />
               )}

@@ -24,16 +24,16 @@ export function OptionTabs({
   return (
     <div>
       {/* Tab Bar */}
-      <div className="flex gap-1 overflow-x-auto border-b border-navy-100 pb-0">
+      <div className="-mb-px flex gap-1 overflow-x-auto border-b border-navy-200">
         {options.map((opt, i) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => setActiveTab(i)}
-            className={`shrink-0 px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`shrink-0 border-b-2 px-5 py-3 text-sm font-medium transition-colors ${
               activeTab === i
-                ? "border-b-2 border-navy-900 text-navy-900"
-                : "text-navy-400 hover:text-navy-700"
+                ? "border-navy-900 text-navy-900"
+                : "border-transparent text-navy-400 hover:text-navy-700"
             }`}
           >
             {opt.optionName || `Option ${String.fromCharCode(65 + i)}`}

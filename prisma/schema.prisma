@@ -22,6 +22,7 @@ model UserProfile {
 
   deals       Deal[]
   savedLeases SavedLease[]
+  clients     Client[]
 
   @@map("user_profiles")
 }
@@ -48,16 +49,19 @@ model Deal {
   userId       String       @map("user_id")
   dealName     String       @map("deal_name")
   clientName   String?      @map("client_name")
+  clientId     String?      @map("client_id")
   propertyType PropertyType @default(OFFICE) @map("property_type")
   status       DealStatus   @default(DRAFT)
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
   user      UserProfile  @relation(fields: [userId], references: [clerkUserId])
+  client    Client?      @relation(fields: [clientId], references: [id])
   options   LeaseOption[]
   aiSummary AISummary?
 
   @@index([userId])
+  @@index([clientId])
   @@map("deals")
 }
 
@@ -173,6 +177,54 @@ model SavedLease {
 
   @@index([userId])
   @@map("saved_leases")
+}
+
+// ─── Client ──────────────────────────────────────────────────────
+
+enum ClientSize {
+  SOLO         // 1 person
+  SMALL        // 2-10
+  MEDIUM       // 11-50
+  LARGE        // 51-200
+  ENTERPRISE   // 200+
+}
+
+model Client {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  token         String      @unique @default(cuid()) // public questionnaire link token
+
+  // Basic info
+  name          String
+  company       String?
+  email         String?
+  phone         String?
+  industry      String?
+  companySize   ClientSize? @map("company_size")
+
+  // Questionnaire answers (null = not yet submitted)
+  currentHeadcount       Int?    @map("current_headcount")
+  projectedHeadcount12mo Int?    @map("projected_headcount_12mo")
+  revenuePerEmployee     Float?  @map("revenue_per_employee")
+  currentAnnualRevenue   Float?  @map("current_annual_revenue")
+  projectedRevenueGrowth Float?  @map("projected_revenue_growth")
+  sfPerEmployee          Float?  @map("sf_per_employee")
+  criticalAmenities      String? @map("critical_amenities") // JSON array as string
+  expansionTimeline      String? @map("expansion_timeline")
+  budgetConstraint       Float?  @map("budget_constraint")
+  primaryGoal            String? @map("primary_goal")
+
+  questionnaireCompletedAt DateTime? @map("questionnaire_completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  UserProfile @relation(fields: [userId], references: [clerkUserId])
+  deals Deal[]
+
+  @@index([userId])
+  @@index([token])
+  @@map("clients")
 }
 
 // ─── AI Summary ─────────────────────────────────────────────────

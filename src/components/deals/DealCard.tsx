@@ -42,17 +42,17 @@ export function DealCard({
       : `/deals/${id}/edit`;
 
   return (
-    <div className="group flex flex-col gap-3 rounded-xl border border-navy-100 bg-white p-4 transition-shadow hover:shadow-sm sm:p-5">
+    <div className="group flex flex-col gap-3 rounded-xl border border-navy-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link
             href={href}
-            className="line-clamp-1 font-semibold text-navy-900 hover:text-navy-700"
+            className="line-clamp-1 font-semibold tracking-tight text-navy-900 hover:text-navy-700"
           >
             {dealName}
           </Link>
           {clientName && (
-            <p className="mt-0.5 text-sm text-navy-500">{clientName}</p>
+            <p className="mt-1 text-sm text-navy-500">{clientName}</p>
           )}
         </div>
         <Badge variant={statusVariants[status]}>
@@ -67,10 +67,10 @@ export function DealCard({
         </span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 border-t border-navy-100 pt-3">
         <Link
           href={href}
-          className="flex-1 rounded-lg border border-navy-200 py-1.5 text-center text-xs font-medium text-navy-700 hover:bg-navy-50"
+          className="flex-1 rounded-lg border border-navy-200 py-2 text-center text-xs font-medium text-navy-700 hover:bg-navy-50"
         >
           {status === "CALCULATED" || status === "EXPORTED"
             ? "View Results"
@@ -80,7 +80,7 @@ export function DealCard({
           <button
             type="button"
             onClick={() => onDelete(id)}
-            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
           >
             Delete
           </button>

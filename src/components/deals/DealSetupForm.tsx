@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,19 +11,47 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PROPERTY_TYPES } from "@/lib/constants";
 
+interface ClientOption {
+  id: string;
+  name: string;
+  company?: string | null;
+}
+
 export function DealSetupForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [clients, setClients] = useState<ClientOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/clients")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setClients(data));
+  }, []);
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<DealFormData>({
     resolver: zodResolver(dealSchema),
     defaultValues: { propertyType: "OFFICE" },
   });
+
+  const selectedClientId = watch("clientId");
+
+  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const clientId = e.target.value;
+    setValue("clientId", clientId || undefined);
+    if (clientId) {
+      const client = clients.find((c) => c.id === clientId);
+      if (client) {
+        setValue("clientName", client.company || client.name);
+      }
+    }
+  };
 
   const onSubmit = async (data: DealFormData) => {
     setLoading(true);
@@ -43,6 +71,14 @@ export function DealSetupForm() {
     }
   };
 
+  const clientSelectOptions = [
+    { value: "", label: "No client linked" },
+    ...clients.map((c) => ({
+      value: c.id,
+      label: c.company ? `${c.name} (${c.company})` : c.name,
+    })),
+  ];
+
   return (
     <div className="mx-auto max-w-lg">
       <Card>
@@ -58,6 +94,17 @@ export function DealSetupForm() {
             error={errors.dealName?.message}
             {...register("dealName")}
           />
+
+          {clients.length > 0 && (
+            <Select
+              label="Link Client"
+              options={clientSelectOptions}
+              value={selectedClientId || ""}
+              onChange={handleClientChange}
+              hint="Link a client to auto-fill their name and use questionnaire data"
+            />
+          )}
+
           <Input
             label="Client Name"
             placeholder="e.g. Acme Corp"

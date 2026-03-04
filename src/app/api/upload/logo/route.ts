@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { Storage } from "@google-cloud/storage";
 import { prisma } from "@/lib/prisma";
-import { unauthorized, badRequest, ok } from "@/lib/api";
+import { unauthorized, badRequest, ok, err } from "@/lib/api";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -16,34 +15,63 @@ export async function POST(req: Request) {
   if (file.size > 5 * 1024 * 1024)
     return badRequest("File must be under 5MB");
 
-  // Parse GCS credentials at request time (not module load time)
-  // so the build doesn't fail when env vars are absent
   const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-  const credentials = credentialsJson ? JSON.parse(credentialsJson) : undefined;
-  const storage = new Storage({
-    credentials,
-    projectId: process.env.GCS_PROJECT_ID,
-  });
+  const bucketName = process.env.GCS_BUCKET_NAME;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = file.name.split(".").pop() ?? "png";
-  const filename = `logos/${userId}-${Date.now()}.${ext}`;
+  if (!credentialsJson || !bucketName) {
+    // GCS not configured — store logo as a base64 data URL as fallback
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString("base64");
+      const logoUrl = `data:${file.type};base64,${base64}`;
 
-  const bucket = storage.bucket(process.env.GCS_BUCKET_NAME!);
-  const gcsFile = bucket.file(filename);
+      await prisma.userProfile.upsert({
+        where: { clerkUserId: userId },
+        update: { logoUrl },
+        create: { clerkUserId: userId, email: "", logoUrl },
+      });
 
-  await gcsFile.save(buffer, {
-    metadata: { contentType: file.type },
-    public: true,
-  });
+      return ok({ logoUrl });
+    } catch (e) {
+      console.error("[upload/logo] base64 fallback failed:", e);
+      return err("Logo upload failed — storage not configured", 500);
+    }
+  }
 
-  const logoUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${filename}`;
+  try {
+    const { Storage } = await import("@google-cloud/storage");
+    const credentials = JSON.parse(credentialsJson);
+    const storage = new Storage({
+      credentials,
+      projectId: process.env.GCS_PROJECT_ID,
+    });
 
-  await prisma.userProfile.upsert({
-    where: { clerkUserId: userId },
-    update: { logoUrl },
-    create: { clerkUserId: userId, email: "", logoUrl },
-  });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const ext = file.name.split(".").pop() ?? "png";
+    const filename = `logos/${userId}-${Date.now()}.${ext}`;
 
-  return ok({ logoUrl });
+    const bucket = storage.bucket(bucketName);
+    const gcsFile = bucket.file(filename);
+
+    await gcsFile.save(buffer, {
+      metadata: { contentType: file.type },
+      public: true,
+    });
+
+    const logoUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
+
+    await prisma.userProfile.upsert({
+      where: { clerkUserId: userId },
+      update: { logoUrl },
+      create: { clerkUserId: userId, email: "", logoUrl },
+    });
+
+    return ok({ logoUrl });
+  } catch (e) {
+    console.error("[upload/logo] GCS upload failed:", e);
+    return err(
+      e instanceof Error ? e.message : "Logo upload failed",
+      500
+    );
+  }
 }

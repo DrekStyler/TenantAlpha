@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // field that webpack picks up, replacing renderToBuffer with a stub.
   // Externalising it forces Node.js to resolve the correct server build at runtime.
   serverExternalPackages: ["@react-pdf/renderer"],
+  turbopack: {},
   webpack: (config) => {
     // Ensure __dirname is available in proxy/middleware context
     // (ua-parser-js inside next/server uses __dirname which isn't

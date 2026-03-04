@@ -82,21 +82,21 @@ export function ComparisonTable({ results }: ComparisonTableProps) {
   const { options, bestValueOption } = results;
 
   return (
-    <div className="-mx-1 overflow-x-auto">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-[480px] text-sm">
         <thead>
-          <tr className="border-b-2 border-navy-100">
-            <th className="py-2.5 pl-2 pr-4 text-left font-semibold text-navy-600">
+          <tr className="border-b border-navy-200">
+            <th className="py-3 pl-1 pr-4 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
               Metric
             </th>
             {options.map((opt, i) => (
               <th
                 key={opt.optionName}
-                className={`px-3 py-2.5 text-right font-semibold ${
-                  opt.optionName === bestValueOption ? "text-navy-900" : "text-navy-600"
+                className={`px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide ${
+                  opt.optionName === bestValueOption ? "text-navy-900" : "text-navy-500"
                 }`}
               >
-                <div className="flex items-center justify-end gap-1.5">
+                <div className="flex items-center justify-end gap-2">
                   <div
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: OPTION_COLORS[i % OPTION_COLORS.length] }}
@@ -136,9 +136,9 @@ export function ComparisonTable({ results }: ComparisonTableProps) {
             return (
               <tr
                 key={row.key}
-                className="border-b border-navy-50 hover:bg-navy-50/50"
+                className="border-b border-navy-50 hover:bg-navy-50/40"
               >
-                <td className="py-3 pl-2 pr-4 font-medium text-navy-700">
+                <td className="py-3.5 pl-1 pr-4 font-medium text-navy-700">
                   {row.label}
                 </td>
                 {options.map((opt, i) => {
@@ -146,7 +146,7 @@ export function ComparisonTable({ results }: ComparisonTableProps) {
                   return (
                     <td
                       key={opt.optionName}
-                      className={`px-3 py-3 text-right ${
+                      className={`px-4 py-3.5 text-right tabular-nums ${
                         isBest ? "font-semibold text-navy-900" : "text-navy-500"
                       }`}
                     >

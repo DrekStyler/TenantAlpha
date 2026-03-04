@@ -35,8 +35,9 @@ export const leaseOptionSchema = z.object({
   estimatedBuildoutCost: z.number().min(0).optional().catch(undefined),
   existingCondition: z
     .enum(["SHELL", "SECOND_GEN", "TURNKEY", "AS_IS"])
-    .optional(),
-  discountRate: z.number().min(0).max(100),
+    .optional()
+    .catch(undefined),
+  discountRate: z.number().min(0).max(100).catch(8.0),
   annualRevenue: z.number().positive().optional().catch(undefined),
   employees: z.number().int().positive().optional().catch(undefined),
   expectedRevenueGrowth: z.number().min(-100).max(100).optional().catch(undefined),

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leaseOptionSchema, type LeaseOptionFormData } from "@/schemas/option";
 import { Input } from "@/components/ui/Input";
@@ -41,9 +41,8 @@ export function OptionForm({
     register,
     handleSubmit,
     watch,
-    control,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<LeaseOptionFormData>({
     resolver: zodResolver(leaseOptionSchema),
     defaultValues: {
@@ -111,7 +110,7 @@ export function OptionForm({
       onSubmit={handleSubmit(onSubmit, () =>
         setSaveMsg("Please fix the errors highlighted below.")
       )}
-      className="space-y-6"
+      className="space-y-8"
     >
       {/* Basic Fields */}
       <section className="space-y-4">
@@ -294,7 +293,7 @@ export function OptionForm({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-          Advanced Options (OpEx, TI, Financial)
+          Advanced Options (OpEx, TI, Parking)
         </button>
       </div>
 
@@ -302,7 +301,7 @@ export function OptionForm({
         <>
           {/* Operating Expenses */}
           {isNNN && (
-            <section className="space-y-4 rounded-xl bg-navy-50 p-4">
+            <section className="space-y-4 rounded-xl bg-navy-50 p-5">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-400">
                 Operating Expenses
               </h3>
@@ -344,7 +343,7 @@ export function OptionForm({
           )}
 
           {/* Additional Costs */}
-          <section className="space-y-4 rounded-xl bg-navy-50 p-4">
+          <section className="space-y-4 rounded-xl bg-navy-50 p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-400">
               Additional Costs
             </h3>
@@ -383,7 +382,7 @@ export function OptionForm({
           </section>
 
           {/* TI */}
-          <section className="space-y-4 rounded-xl bg-navy-50 p-4">
+          <section className="space-y-4 rounded-xl bg-navy-50 p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-400">
               Tenant Improvements
             </h3>
@@ -432,80 +431,13 @@ export function OptionForm({
             />
           </section>
 
-          {/* Financial Context */}
-          <section className="space-y-4 rounded-xl bg-navy-50 p-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-400">
-              Financial Context
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="flex flex-col gap-1">
-                <label className="flex items-center gap-1 text-sm font-medium text-navy-700">
-                  Discount Rate (%)
-                  <Tooltip term="discountRate"><span /></Tooltip>
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="8.0"
-                    className="w-full rounded-lg border border-navy-200 bg-white px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
-                    {...register("discountRate", { valueAsNumber: true })}
-                  />
-                  <span className="absolute right-3 text-sm text-navy-400">%</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="flex items-center gap-1 text-sm font-medium text-navy-700">
-                  Annual Revenue ($)
-                  <Tooltip term="annualRevenue"><span /></Tooltip>
-                </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3 text-sm text-navy-400">$</span>
-                  <input
-                    type="number"
-                    placeholder="5000000"
-                    className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
-                    {...register("annualRevenue", { valueAsNumber: true })}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="flex items-center gap-1 text-sm font-medium text-navy-700">
-                  Employees
-                  <Tooltip term="employees"><span /></Tooltip>
-                </label>
-                <input
-                  type="number"
-                  placeholder="25"
-                  className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
-                  {...register("employees", { valueAsNumber: true })}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="flex items-center gap-1 text-sm font-medium text-navy-700">
-                  Revenue Growth %
-                  <Tooltip term="expectedRevenueGrowth"><span /></Tooltip>
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="10.0"
-                    className="w-full rounded-lg border border-navy-200 bg-white px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
-                    {...register("expectedRevenueGrowth", { valueAsNumber: true })}
-                  />
-                  <span className="absolute right-3 text-sm text-navy-400">%</span>
-                </div>
-              </div>
-            </div>
-          </section>
         </>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-navy-400">
+      <div className="flex items-center justify-between border-t border-navy-100 pt-6">
+        <div className="text-sm">
           {saveMsg && (
-            <span className={saveMsg === "Saved" ? "text-green-600" : "text-red-500"}>
+            <span className={saveMsg === "Saved" ? "font-medium text-green-600" : "text-red-500"}>
               {saveMsg}
             </span>
           )}

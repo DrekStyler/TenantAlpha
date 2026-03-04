@@ -41,13 +41,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-navy-50">
       {/* Top Header */}
-      <header className="sticky top-0 z-50 border-b border-navy-100 bg-white">
-        <div className="flex h-14 items-center justify-between px-4 lg:px-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-900">
+      <header className="sticky top-0 z-50 border-b border-navy-200 bg-white/95 backdrop-blur-sm">
+        <div className="flex h-16 items-center justify-between px-4 lg:px-8">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900">
               <span className="text-sm font-bold text-gold-400">T</span>
             </div>
-            <span className="hidden text-lg font-semibold text-navy-900 sm:block">
+            <span className="hidden text-lg font-semibold tracking-tight text-navy-900 sm:block">
               TenantAlpha
             </span>
           </Link>
@@ -55,17 +55,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-3.5rem)]">
+      <div className="flex min-h-[calc(100vh-4rem)]">
         {/* Desktop Sidebar */}
-        <aside className="hidden w-56 shrink-0 border-r border-navy-100 bg-white lg:block">
-          <nav className="flex flex-col gap-1 p-3">
+        <aside className="hidden w-56 shrink-0 border-r border-navy-200 bg-white lg:block">
+          <nav className="flex flex-col gap-1 p-4">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-navy-900 text-white"
                       : "text-navy-600 hover:bg-navy-50 hover:text-navy-900"
@@ -80,21 +80,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 pb-20 lg:pb-6">
-          <div className="mx-auto max-w-6xl p-4 lg:p-6">{children}</div>
+        <main className="flex-1 pb-24 lg:pb-8">
+          <div className="mx-auto max-w-6xl p-4 lg:p-8">{children}</div>
         </main>
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-navy-100 bg-white lg:hidden">
-        <div className="flex justify-around py-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-navy-200 bg-white/95 backdrop-blur-sm lg:hidden">
+        <div className="flex justify-around pb-[env(safe-area-inset-bottom)] pt-1">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs ${
+                className={`flex flex-col items-center gap-1 px-4 py-3 text-xs font-medium ${
                   isActive ? "text-navy-900" : "text-navy-400"
                 }`}
               >

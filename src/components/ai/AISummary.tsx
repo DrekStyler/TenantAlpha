@@ -27,9 +27,9 @@ function renderMarkdown(text: string): React.ReactNode {
   function flushBullets() {
     if (bulletBuffer.length === 0) return;
     nodes.push(
-      <ul key={key++} className="mb-3 ml-4 list-disc space-y-1">
+      <ul key={key++} className="mb-4 ml-5 list-disc space-y-2">
         {bulletBuffer.map((b, i) => (
-          <li key={i} className="leading-relaxed">{renderInline(b)}</li>
+          <li key={i} className="leading-relaxed text-navy-600">{renderInline(b)}</li>
         ))}
       </ul>
     );
@@ -45,14 +45,14 @@ function renderMarkdown(text: string): React.ReactNode {
     if (trimmed.startsWith("### ")) {
       flushBullets();
       nodes.push(
-        <h3 key={key++} className="mb-1 mt-4 text-sm font-semibold text-navy-900">
+        <h3 key={key++} className="mb-2 mt-6 text-sm font-semibold text-navy-900">
           {renderInline(trimmed.slice(4))}
         </h3>
       );
     } else if (trimmed.startsWith("## ")) {
       flushBullets();
       nodes.push(
-        <h2 key={key++} className="mb-1 mt-4 text-base font-semibold text-navy-900">
+        <h2 key={key++} className="mb-2 mt-6 text-base font-semibold text-navy-900">
           {renderInline(trimmed.slice(3))}
         </h2>
       );
@@ -61,7 +61,7 @@ function renderMarkdown(text: string): React.ReactNode {
     } else {
       flushBullets();
       nodes.push(
-        <p key={key++} className="mb-2 leading-relaxed">
+        <p key={key++} className="mb-3 leading-relaxed text-navy-600">
           {renderInline(trimmed)}
         </p>
       );

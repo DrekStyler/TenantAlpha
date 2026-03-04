@@ -40,7 +40,21 @@ export async function POST(req: Request) {
 
   try {
     const { Storage } = await import("@google-cloud/storage");
-    const credentials = JSON.parse(credentialsJson);
+    let credentials: Record<string, unknown>;
+    try {
+      credentials = JSON.parse(credentialsJson);
+    } catch {
+      console.error("[upload/logo] Invalid GOOGLE_APPLICATION_CREDENTIALS_JSON — falling back to base64");
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString("base64");
+      const logoUrl = `data:${file.type};base64,${base64}`;
+      await prisma.userProfile.upsert({
+        where: { clerkUserId: userId },
+        update: { logoUrl },
+        create: { clerkUserId: userId, email: "", logoUrl },
+      });
+      return ok({ logoUrl });
+    }
     const storage = new Storage({
       credentials,
       projectId: process.env.GCS_PROJECT_ID,

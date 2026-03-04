@@ -1,19 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { clientSchema } from "@/schemas/client";
-import { ok, unauthorized, badRequest } from "@/lib/api";
+import { ok, unauthorized, badRequest, err } from "@/lib/api";
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return unauthorized();
 
-  const clients = await prisma.client.findMany({
-    where: { userId },
-    orderBy: { updatedAt: "desc" },
-    include: { _count: { select: { deals: true } } },
-  });
+  try {
+    const clients = await prisma.client.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      include: { _count: { select: { deals: true } } },
+    });
 
-  return ok(clients);
+    return ok(clients);
+  } catch (e) {
+    console.error("[api/clients] GET error:", e);
+    return err("Failed to load clients", 500);
+  }
 }
 
 export async function POST(req: Request) {
@@ -24,20 +29,25 @@ export async function POST(req: Request) {
   const parsed = clientSchema.safeParse(body);
   if (!parsed.success) return badRequest(parsed.error.message);
 
-  // Ensure user profile exists
-  await prisma.userProfile.upsert({
-    where: { clerkUserId: userId },
-    update: {},
-    create: { clerkUserId: userId, email: "" },
-  });
+  try {
+    // Ensure user profile exists
+    await prisma.userProfile.upsert({
+      where: { clerkUserId: userId },
+      update: {},
+      create: { clerkUserId: userId, email: "" },
+    });
 
-  const client = await prisma.client.create({
-    data: {
-      ...parsed.data,
-      email: parsed.data.email || undefined,
-      userId,
-    },
-  });
+    const client = await prisma.client.create({
+      data: {
+        ...parsed.data,
+        email: parsed.data.email || undefined,
+        userId,
+      },
+    });
 
-  return ok(client, 201);
+    return ok(client, 201);
+  } catch (e) {
+    console.error("[api/clients] POST error:", e);
+    return err("Failed to create client", 500);
+  }
 }

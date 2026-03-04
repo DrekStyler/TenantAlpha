@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { LocationPreview } from "@/components/location/LocationPreview";
 import {
   RENT_STRUCTURES,
   ESCALATION_TYPES,
@@ -134,6 +135,15 @@ export function OptionForm({
             {...register("propertyAddress")}
           />
         </div>
+
+        {/* Location preview (only if option is saved and address exists) */}
+        {optionId && watch("propertyAddress") && (
+          <LocationPreview
+            dealId={dealId}
+            optionId={optionId}
+            address={watch("propertyAddress")}
+          />
+        )}
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Select

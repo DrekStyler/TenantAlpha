@@ -88,4 +88,6 @@ export const RATE_LIMITS = {
   questionnaire: { maxRequests: 10, windowMs: 60_000 },
   /** Upload: 5 per minute per user */
   upload: { maxRequests: 5, windowMs: 60_000 },
+  /** Location/geocoding: 20 per minute per user (calls Google API) */
+  location: { maxRequests: 20, windowMs: 60_000 },
 } as const;

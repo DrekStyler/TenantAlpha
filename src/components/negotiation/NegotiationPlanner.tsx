@@ -9,6 +9,7 @@ import { NPVChartSection } from "./NPVChartSection";
 import { EditableAssumptionsTable, type HighlightMap, type CellHighlight } from "./EditableAssumptionsTable";
 import { DerivedMetricsTable } from "./DerivedMetricsTable";
 import { NegotiationInsights } from "./NegotiationInsights";
+import { LocationSidebar } from "./LocationSidebar";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 
@@ -159,8 +160,8 @@ export function NegotiationPlanner({
           )}
         </div>
 
-        {/* Right: Insights sidebar */}
-        <div className="lg:sticky lg:top-4 lg:self-start">
+        {/* Right: Insights + Location sidebar */}
+        <div className="lg:sticky lg:top-4 lg:self-start space-y-4">
           <NegotiationInsights
             analysis={analysis}
             tippingPoints={tippingPoints}
@@ -168,6 +169,7 @@ export function NegotiationPlanner({
             loading={analysisLoading}
             onRefresh={requestAnalysis}
           />
+          <LocationSidebar dealId={dealId} />
         </div>
       </div>
     </div>

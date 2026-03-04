@@ -33,7 +33,10 @@ export async function POST(req: Request) {
   const deal = await prisma.deal.findUnique({
     where: { id: dealId },
     include: {
-      options: { orderBy: { sortOrder: "asc" } },
+      options: {
+        orderBy: { sortOrder: "asc" },
+        include: { amenities: true },
+      },
       aiSummary: true,
     },
   });
@@ -44,6 +47,26 @@ export async function POST(req: Request) {
   const profile = await prisma.userProfile.findUnique({
     where: { clerkUserId: userId },
   });
+
+  // Build location data for PDF (only options with geocoded data)
+  const locationData = deal.options
+    .filter((opt) => opt.latitude != null && opt.longitude != null)
+    .map((opt) => ({
+      optionName: opt.optionName,
+      propertyAddress: opt.propertyAddress,
+      formattedAddress: opt.formattedAddress,
+      walkScore: opt.walkScore,
+      driveScore: opt.driveScore,
+      amenities: (opt.amenities ?? []).map((a) => ({
+        category: a.category,
+        name: a.name,
+        latitude: a.latitude,
+        longitude: a.longitude,
+        distanceMeters: a.distanceMeters,
+        rating: a.rating,
+        address: a.address,
+      })),
+    }));
 
   // Mark deal as exported
   await prisma.deal.update({
@@ -59,6 +82,7 @@ export async function POST(req: Request) {
     aiSummary: aiSummary ?? deal.aiSummary?.summaryText ?? "",
     chartImages: chartImages ?? {},
     brokerProfile: profile,
+    locationData: locationData.length > 0 ? locationData : null,
   });
 
   let pdfBuffer: Buffer;

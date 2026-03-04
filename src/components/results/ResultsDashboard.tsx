@@ -11,6 +11,7 @@ import { AnnualCashFlowLineChart } from "./AnnualCashFlowLineChart";
 import { NPVComparisonChart } from "./NPVComparisonChart";
 import { AISummary } from "@/components/ai/AISummary";
 import { AIChatWindow } from "@/components/ai/AIChatWindow";
+import { LocationTab } from "./LocationTab";
 
 interface ResultsDashboardProps {
   dealId: string;
@@ -18,7 +19,7 @@ interface ResultsDashboardProps {
   results: ComparisonResult;
 }
 
-const TABS = ["Summary", "Cash Flows", "Comparison", "AI Assistant"] as const;
+const TABS = ["Summary", "Cash Flows", "Comparison", "AI Assistant", "Location"] as const;
 type Tab = (typeof TABS)[number];
 
 export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboardProps) {
@@ -112,6 +113,17 @@ export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboard
             subtitle="Ask questions about this analysis"
           />
           <AIChatWindow dealId={dealId} calculationResults={results} />
+        </Card>
+      )}
+
+      {/* Location Tab */}
+      {activeTab === "Location" && (
+        <Card>
+          <CardHeader
+            title="Location Intelligence"
+            subtitle="Walk scores, drive scores, and nearby amenities for each option"
+          />
+          <LocationTab dealId={dealId} />
         </Card>
       )}
     </div>

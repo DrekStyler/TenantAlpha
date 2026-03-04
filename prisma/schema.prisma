@@ -100,6 +100,14 @@ model LeaseOption {
   propertyAddress String?      @map("property_address")
   propertyType    PropertyType? @map("property_type")
 
+  // Location / Geocoding cache
+  latitude          Float?    @map("latitude")
+  longitude         Float?    @map("longitude")
+  formattedAddress  String?   @map("formatted_address")
+  walkScore         Int?      @map("walk_score")
+  driveScore        Int?      @map("drive_score")
+  locationFetchedAt DateTime? @map("location_fetched_at")
+
   // Space
   rentableSF Float  @map("rentable_sf")
   usableSF   Float? @map("usable_sf")
@@ -145,10 +153,30 @@ model LeaseOption {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal      Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  amenities LocationAmenity[]
 
   @@index([dealId])
   @@map("lease_options")
+}
+
+// ─── Location Amenity (Cached Nearby Places) ─────────────────────
+
+model LocationAmenity {
+  id             String  @id @default(cuid())
+  optionId       String  @map("option_id")
+  category       String  // "restaurant", "cafe", "gym", etc.
+  name           String
+  latitude       Float
+  longitude      Float
+  distanceMeters Int     @map("distance_meters")
+  rating         Float?
+  address        String?
+
+  option LeaseOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@index([optionId])
+  @@map("location_amenities")
 }
 
 // ─── Saved Lease (Historical Records) ───────────────────────────

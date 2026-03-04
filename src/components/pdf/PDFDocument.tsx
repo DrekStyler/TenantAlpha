@@ -7,6 +7,8 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { ComparisonResult } from "@/engine/types";
+import type { AmenityResult } from "@/types/location";
+import { AMENITY_CATEGORIES } from "@/types/location";
 
 // Using PDF built-in Helvetica — no network fetch required.
 // External font CDN calls (Google Fonts) are unreliable in serverless functions.
@@ -70,6 +72,11 @@ const s = StyleSheet.create({
   // Disclaimer
   disclaimerText: { fontSize: 8, color: colors.muted, lineHeight: 1.6 },
   disclaimerTitle: { fontSize: 10, fontWeight: 600, color: colors.navyMid, marginBottom: 6 },
+
+  // Location
+  scoreCircle: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
+  scoreValue: { fontSize: 14, fontWeight: 700, color: colors.white, textAlign: "center" },
+  scoreLabel: { fontSize: 8, color: colors.muted, textAlign: "center", marginTop: 2 },
 });
 
 function fmt(n: number) {
@@ -101,6 +108,14 @@ interface PDFDocumentProps {
     phone?: string | null;
     logoUrl?: string | null;
   } | null;
+  locationData?: Array<{
+    optionName: string;
+    propertyAddress?: string | null;
+    formattedAddress?: string | null;
+    walkScore?: number | null;
+    driveScore?: number | null;
+    amenities: AmenityResult[];
+  }> | null;
 }
 
 function PageFooter({ dealName }: { dealName: string }) {
@@ -119,6 +134,7 @@ export function PDFDocument({
   aiSummary,
   chartImages,
   brokerProfile,
+  locationData,
 }: PDFDocumentProps) {
   const { bestValueOption, bestValueReasons, rankedByNPV, rankedByEffectiveRent } = calculationResults;
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -328,6 +344,107 @@ export function PDFDocument({
               <Image src={src} style={{ width: "100%", objectFit: "contain" }} />
             </View>
           ))}
+
+          <PageFooter dealName={deal.dealName} />
+        </Page>
+      )}
+
+      {/* ── LOCATION ANALYSIS ── */}
+      {locationData && locationData.length > 0 && (
+        <Page size="LETTER" style={s.page}>
+          <View style={s.pageHeader}>
+            <Text style={s.pageHeaderTitle}>Location Analysis</Text>
+            <Text style={s.pageHeaderSub}>Walk & drive scores and nearby amenities</Text>
+          </View>
+
+          {/* Score Comparison Table */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Walkability & Accessibility Scores</Text>
+            <View style={s.table}>
+              <View style={s.tableHeaderRow}>
+                <Text style={[s.tableHeaderCell, { flex: 2 }]}>Option</Text>
+                <Text style={s.tableHeaderCell}>Address</Text>
+                <Text style={[s.tableHeaderCell, { flex: 0.7, textAlign: "center" }]}>Walk</Text>
+                <Text style={[s.tableHeaderCell, { flex: 0.7, textAlign: "center" }]}>Drive</Text>
+              </View>
+              {locationData.map((loc, i) => (
+                <View key={i} style={i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
+                  <Text style={[s.tableCellBold, { flex: 2 }]}>{loc.optionName}</Text>
+                  <Text style={[s.tableCell, { fontSize: 8 }]}>
+                    {loc.formattedAddress ?? loc.propertyAddress ?? "—"}
+                  </Text>
+                  <Text style={[s.tableCellRight, {
+                    flex: 0.7,
+                    textAlign: "center",
+                    fontWeight: 600,
+                    color: loc.walkScore != null
+                      ? loc.walkScore >= 70 ? "#2d6a4f" : loc.walkScore >= 40 ? "#b45309" : "#dc2626"
+                      : colors.muted,
+                  }]}>
+                    {loc.walkScore ?? "—"}
+                  </Text>
+                  <Text style={[s.tableCellRight, {
+                    flex: 0.7,
+                    textAlign: "center",
+                    fontWeight: 600,
+                    color: loc.driveScore != null
+                      ? loc.driveScore >= 70 ? "#2d6a4f" : loc.driveScore >= 40 ? "#b45309" : "#dc2626"
+                      : colors.muted,
+                  }]}>
+                    {loc.driveScore ?? "—"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Amenity Counts by Category */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Nearby Amenities Comparison</Text>
+            <View style={s.table}>
+              <View style={s.tableHeaderRow}>
+                <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Category</Text>
+                {locationData.map((loc, i) => (
+                  <Text key={i} style={[s.tableHeaderCell, { textAlign: "center" }]}>
+                    {loc.optionName}
+                  </Text>
+                ))}
+              </View>
+              {AMENITY_CATEGORIES.map((cat) => {
+                const counts = locationData.map(
+                  (loc) => loc.amenities.filter((a) => a.category === cat.key).length
+                );
+                const maxCount = Math.max(...counts);
+                if (maxCount === 0) return null;
+                return (
+                  <View key={cat.key} style={s.tableRow}>
+                    <Text style={[s.tableCell, { flex: 1.5 }]}>
+                      {cat.icon} {cat.label}
+                    </Text>
+                    {counts.map((count, i) => (
+                      <Text
+                        key={i}
+                        style={[s.tableCellRight, {
+                          textAlign: "center",
+                          fontWeight: count === maxCount && count > 0 ? 600 : 400,
+                          color: count === maxCount && count > 0 ? "#2d6a4f" : colors.text,
+                        }]}
+                      >
+                        {count}
+                      </Text>
+                    ))}
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Score Legend */}
+          <View style={{ marginTop: 8 }}>
+            <Text style={{ fontSize: 8, color: colors.muted, lineHeight: 1.5 }}>
+              Walk Score (0–100): Measures walkability based on nearby amenities within 400m. Drive Score (0–100): Measures accessibility by car within 1,600m. Scores ≥ 70 = Excellent, 40–69 = Moderate, &lt; 40 = Limited. Higher counts in the amenity comparison indicate more options within the search radius.
+            </Text>
+          </View>
 
           <PageFooter dealName={deal.dealName} />
         </Page>

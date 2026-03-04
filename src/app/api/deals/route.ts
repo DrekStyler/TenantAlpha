@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { dealSchema } from "@/schemas/deal";
-import { ok, unauthorized, badRequest, err } from "@/lib/api";
+import { ok, unauthorized, badRequest, forbidden, err } from "@/lib/api";
 
 export async function GET() {
   const { userId } = await auth();
@@ -28,6 +28,17 @@ export async function POST(req: Request) {
   const body = await req.json();
   const parsed = dealSchema.safeParse(body);
   if (!parsed.success) return badRequest(parsed.error.message);
+
+  // Verify clientId belongs to this user if provided
+  if (parsed.data.clientId) {
+    const client = await prisma.client.findUnique({
+      where: { id: parsed.data.clientId },
+      select: { userId: true },
+    });
+    if (!client || client.userId !== userId) {
+      return forbidden();
+    }
+  }
 
   try {
     // Ensure user profile exists

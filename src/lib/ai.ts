@@ -11,34 +11,64 @@ GUIDELINES:
 - Format responses with clear sections and bullet points
 - Keep responses concise — prefer bullet points over long paragraphs
 - Proactively highlight risks, not just opportunities
-- When comparing options, always ground your analysis in the specific calculated metrics`;
+- When comparing options, always ground your analysis in the specific calculated metrics
+- IMPORTANT: Do not reference any street addresses, client names, or other personally identifying information`;
+
+/**
+ * Fields allowed in AI context. Everything else (addresses, client info,
+ * internal IDs) is stripped to prevent PII leakage to the AI provider.
+ */
+const OPTION_ALLOW_LIST: ReadonlySet<string> = new Set([
+  "optionName",
+  "rentableSF",
+  "usableSF",
+  "loadFactor",
+  "termMonths",
+  "baseRentY1",
+  "escalationType",
+  "escalationPercent",
+  "cpiAssumedPercent",
+  "freeRentMonths",
+  "freeRentType",
+  "rentStructure",
+  "opExPerSF",
+  "opExEscalation",
+  "propertyTax",
+  "parkingCostMonthly",
+  "otherMonthlyFees",
+  "tiAllowance",
+  "estimatedBuildoutCost",
+  "existingCondition",
+  "discountRate",
+]);
+
+interface OptionForContext {
+  optionName: string;
+  rentableSF: number;
+  termMonths: number;
+  baseRentY1: number;
+  escalationType: string;
+  escalationPercent: number;
+  freeRentMonths: number;
+  freeRentType: string;
+  rentStructure: string;
+  opExPerSF?: number | null;
+  tiAllowance?: number | null;
+  estimatedBuildoutCost?: number | null;
+  discountRate: number;
+  parkingCostMonthly?: number | null;
+  [key: string]: unknown;
+}
 
 export function buildDealContext(
   dealName: string,
-  options: Array<{
-    optionName: string;
-    propertyAddress?: string | null;
-    rentableSF: number;
-    termMonths: number;
-    baseRentY1: number;
-    escalationType: string;
-    escalationPercent: number;
-    freeRentMonths: number;
-    freeRentType: string;
-    rentStructure: string;
-    opExPerSF?: number | null;
-    tiAllowance?: number | null;
-    estimatedBuildoutCost?: number | null;
-    discountRate: number;
-    parkingCostMonthly?: number | null;
-  }>,
+  options: OptionForContext[],
   calculationResults?: ComparisonResult
 ): string {
   const optionsSummary = options
     .map(
       (opt) => `
 ### ${opt.optionName}
-- Address: ${opt.propertyAddress || "N/A"}
 - Size: ${opt.rentableSF.toLocaleString()} SF
 - Term: ${opt.termMonths} months (${(opt.termMonths / 12).toFixed(1)} years)
 - Base Rent Y1: $${opt.baseRentY1.toFixed(2)}/SF/year
@@ -80,16 +110,56 @@ ${m.rentAsPercentOfRevenue != null ? `- Rent as % of Revenue: ${m.rentAsPercentO
 - Best Value: ${calculationResults.bestValueOption}`;
   }
 
-  return `## DEAL: ${dealName}
+  // Use generic label for the deal — avoid leaking deal/client names
+  return `## LEASE ANALYSIS: ${sanitizeLabel(dealName)}
 
 ## LEASE OPTIONS
 ${optionsSummary}
 ${metricsText}`;
 }
 
+/**
+ * Strip PII from a freeform label: remove emails, phone numbers, and
+ * street address patterns. Preserves generic descriptors like "Downtown Office".
+ */
+function sanitizeLabel(text: string): string {
+  return text
+    // emails
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED]")
+    // phone numbers (US patterns)
+    .replace(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, "[REDACTED]")
+    // Street addresses (123 Main St patterns)
+    .replace(/\d{1,5}\s+[A-Z][a-zA-Z]+(\s+[A-Z][a-zA-Z]+)*\s+(St|Street|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Rd|Road|Ln|Lane|Way|Ct|Court|Pl|Place|Pkwy|Parkway|Cir|Circle)\b\.?/gi, "[REDACTED]");
+}
+
+/**
+ * Sanitize deal context for sending to AI provider.
+ * Strips any residual PII patterns that might remain in the context string.
+ */
 export function sanitizeDealContext(context: string): string {
-  // Strip any PII patterns — for SOC2 compliance
-  // Client names in the deal context are replaced with generic labels
-  // The AI should reference options by their option names only
-  return context;
+  return context
+    // emails
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED]")
+    // phone numbers
+    .replace(/(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, "[REDACTED]")
+    // Street addresses
+    .replace(/\d{1,5}\s+[A-Z][a-zA-Z]+(\s+[A-Z][a-zA-Z]+)*\s+(St|Street|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Rd|Road|Ln|Lane|Way|Ct|Court|Pl|Place|Pkwy|Parkway|Cir|Circle|Suite|Ste|Unit|Floor|Fl)\b\.?(\s*(#|Suite|Ste|Unit|Floor|Fl)\s*\w+)?/gi, "[REDACTED]");
+}
+
+/**
+ * Filter option fields to only those in the allow-list.
+ * Use this before passing options to buildDealContext.
+ */
+export function sanitizeOptions<T extends Record<string, unknown>>(
+  options: T[]
+): OptionForContext[] {
+  return options.map((opt) => {
+    const filtered: Record<string, unknown> = {};
+    for (const key of OPTION_ALLOW_LIST) {
+      if (key in opt && opt[key] != null) {
+        filtered[key] = opt[key];
+      }
+    }
+    return filtered as unknown as OptionForContext;
+  });
 }

@@ -1,9 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
+import { unauthorized, notFound, forbidden, badRequest, tooManyRequests, err } from "@/lib/api";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { PDFDocument } from "@/components/pdf/PDFDocument";
+import { pdfRequestSchema } from "@/schemas/api";
+
+/** PDF requests can be large due to chart image data URLs */
+const MAX_PDF_BODY_SIZE = 5 * 1024 * 1024;
 
 export const maxDuration = 60;
 
@@ -11,11 +16,19 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();
 
-  const body = await req.json();
-  const { dealId, calculationResults, aiSummary, chartImages } = body;
+  const rl = checkRateLimit(`pdf:${userId}`, RATE_LIMITS.pdf);
+  if (!rl.allowed) return tooManyRequests(rl.retryAfterMs);
 
-  if (!dealId) return badRequest("dealId is required");
-  if (!calculationResults) return badRequest("calculationResults is required");
+  const contentLength = Number(req.headers.get("content-length") ?? 0);
+  if (contentLength > MAX_PDF_BODY_SIZE) {
+    return err("Request body too large", 413);
+  }
+
+  const body = await req.json();
+  const parsed = pdfRequestSchema.safeParse(body);
+  if (!parsed.success) return badRequest(parsed.error.message);
+
+  const { dealId, calculationResults, aiSummary, chartImages } = parsed.data;
 
   const deal = await prisma.deal.findUnique({
     where: { id: dealId },

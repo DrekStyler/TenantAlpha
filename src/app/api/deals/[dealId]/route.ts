@@ -44,6 +44,17 @@ export async function PUT(
   const parsed = dealSchema.partial().safeParse(body);
   if (!parsed.success) return badRequest(parsed.error.message);
 
+  // Verify clientId belongs to this user if being updated
+  if (parsed.data.clientId) {
+    const client = await prisma.client.findUnique({
+      where: { id: parsed.data.clientId },
+      select: { userId: true },
+    });
+    if (!client || client.userId !== userId) {
+      return forbidden();
+    }
+  }
+
   const updated = await prisma.deal.update({
     where: { id: dealId },
     data: parsed.data,

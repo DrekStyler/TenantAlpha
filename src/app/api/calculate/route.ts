@@ -3,15 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { calculateDealComparison } from "@/engine";
 import type { LeaseOptionInput, CalculationConfig } from "@/engine/types";
 import { ok, unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
+import { calculateRequestSchema } from "@/schemas/api";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return unauthorized();
 
   const body = await req.json();
-  const { dealId, discountingMode, includeTIInEffectiveRent } = body;
+  const parsed = calculateRequestSchema.safeParse(body);
+  if (!parsed.success) return badRequest(parsed.error.message);
 
-  if (!dealId) return badRequest("dealId is required");
+  const { dealId, discountingMode, includeTIInEffectiveRent } = parsed.data;
 
   const deal = await prisma.deal.findUnique({
     where: { id: dealId },

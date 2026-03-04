@@ -37,11 +37,16 @@ export async function POST(req: Request) {
       create: { clerkUserId: userId, email: "" },
     });
 
+    // Questionnaire token expires in 30 days
+    const tokenExpiresAt = new Date();
+    tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 30);
+
     const client = await prisma.client.create({
       data: {
         ...parsed.data,
         email: parsed.data.email || undefined,
         userId,
+        tokenExpiresAt,
       },
     });
 

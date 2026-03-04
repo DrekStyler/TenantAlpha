@@ -15,9 +15,20 @@ function createPrismaClient() {
   // We handle SSL explicitly via the pool config instead.
   const url = new URL(connectionString);
   url.searchParams.delete("sslmode");
+
+  const isProduction = process.env.NODE_ENV === "production";
+  const isLocalhost =
+    url.hostname === "localhost" || url.hostname === "127.0.0.1";
+
+  // In production, enforce TLS certificate verification (prevents MITM).
+  // Locally, skip SSL entirely since the connection is loopback.
+  const ssl = isLocalhost
+    ? false
+    : { rejectUnauthorized: isProduction };
+
   const adapter = new PrismaPg({
     connectionString: url.toString(),
-    ssl: { rejectUnauthorized: false },
+    ...(ssl !== false ? { ssl } : {}),
   });
   return new PrismaClient({ adapter });
 }

@@ -193,6 +193,7 @@ model Client {
   id            String      @id @default(cuid())
   userId        String      @map("user_id")
   token         String      @unique @default(cuid()) // public questionnaire link token
+  tokenExpiresAt DateTime?  @map("token_expires_at")  // token TTL — null = no expiry (legacy)
 
   // Basic info
   name          String

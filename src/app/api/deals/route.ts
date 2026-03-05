@@ -11,7 +11,10 @@ export async function GET() {
     const deals = await prisma.deal.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      include: { _count: { select: { options: true } } },
+      include: {
+        _count: { select: { options: true } },
+        options: { select: { rentableSF: true } },
+      },
     });
 
     return ok(deals);

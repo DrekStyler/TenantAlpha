@@ -44,6 +44,17 @@ enum DealStatus {
   ARCHIVED
 }
 
+enum DealStage {
+  PROSPECTING
+  REQUIREMENTS
+  TOUR
+  LOI
+  NEGOTIATION
+  UNDER_REVIEW
+  EXECUTED
+  DEAD
+}
+
 model Deal {
   id           String       @id @default(cuid())
   userId       String       @map("user_id")
@@ -52,6 +63,7 @@ model Deal {
   clientId     String?      @map("client_id")
   propertyType PropertyType @default(OFFICE) @map("property_type")
   status       DealStatus   @default(DRAFT)
+  stage        DealStage    @default(PROSPECTING)
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 

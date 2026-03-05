@@ -38,3 +38,14 @@ export const DISCOUNTING_MODES = [
   { value: "monthly", label: "Monthly" },
   { value: "annual", label: "Annual" },
 ] as const;
+
+export const DEAL_STAGE_CONFIG = [
+  { value: "PROSPECTING", label: "Prospecting", color: "bg-sky-100 text-sky-800" },
+  { value: "REQUIREMENTS", label: "Requirements", color: "bg-indigo-100 text-indigo-800" },
+  { value: "TOUR", label: "Tour / Site Visit", color: "bg-violet-100 text-violet-800" },
+  { value: "LOI", label: "LOI / Proposal", color: "bg-amber-100 text-amber-800" },
+  { value: "NEGOTIATION", label: "Negotiation", color: "bg-orange-100 text-orange-800" },
+  { value: "UNDER_REVIEW", label: "Under Review", color: "bg-navy-100 text-navy-700" },
+  { value: "EXECUTED", label: "Executed", color: "bg-green-100 text-green-800" },
+  { value: "DEAD", label: "Dead", color: "bg-red-100 text-red-700" },
+] as const;

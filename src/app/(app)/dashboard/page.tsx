@@ -2,22 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { DealCard } from "@/components/deals/DealCard";
+import { DealTable } from "@/components/deals/DealTable";
+import type { DealRow } from "@/components/deals/DealTable";
 import { ClientTable } from "@/components/clients/ClientTable";
 import { ClientModal } from "@/components/clients/ClientModal";
 import { QuestionnaireModal } from "@/components/clients/QuestionnaireModal";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-
-interface Deal {
-  id: string;
-  dealName: string;
-  clientName?: string;
-  propertyType: string;
-  status: "DRAFT" | "CALCULATED" | "EXPORTED" | "ARCHIVED";
-  updatedAt: string;
-  _count: { options: number };
-}
 
 interface ClientRow {
   id: string;
@@ -34,7 +25,7 @@ interface ClientRow {
 }
 
 export default function DashboardPage() {
-  const [deals, setDeals] = useState<Deal[]>([]);
+  const [deals, setDeals] = useState<DealRow[]>([]);
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientsLoading, setClientsLoading] = useState(true);
@@ -65,6 +56,21 @@ export default function DashboardPage() {
     if (!confirm("Delete this deal? This cannot be undone.")) return;
     await fetch(`/api/deals/${id}`, { method: "DELETE" });
     setDeals((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateDeal = async (id: string, data: Record<string, unknown>) => {
+    const res = await fetch(`/api/deals/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update deal");
+    const updated = await res.json();
+    setDeals((prev) =>
+      prev.map((d) =>
+        d.id === id ? { ...d, ...data, updatedAt: updated.updatedAt } as DealRow : d
+      )
+    );
   };
 
   const handleSaveClient = async (data: {
@@ -136,34 +142,12 @@ export default function DashboardPage() {
             <div className="flex justify-center py-12">
               <Spinner size="lg" />
             </div>
-          ) : deals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-navy-200 py-20 text-center">
-              <p className="text-lg font-medium text-navy-900">
-                No analyses yet
-              </p>
-              <p className="mt-2 text-sm text-navy-500">
-                Start by comparing 2-5 lease options
-              </p>
-              <Link href="/deals/new" className="mt-4">
-                <Button>Start New Analysis</Button>
-              </Link>
-            </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {deals.map((deal) => (
-                <DealCard
-                  key={deal.id}
-                  id={deal.id}
-                  dealName={deal.dealName}
-                  clientName={deal.clientName}
-                  propertyType={deal.propertyType}
-                  status={deal.status}
-                  updatedAt={deal.updatedAt}
-                  optionCount={deal._count.options}
-                  onDelete={handleDeleteDeal}
-                />
-              ))}
-            </div>
+            <DealTable
+              deals={deals}
+              onDelete={handleDeleteDeal}
+              onUpdate={handleUpdateDeal}
+            />
           )}
         </div>
       </section>

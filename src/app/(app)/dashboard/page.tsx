@@ -124,20 +124,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Deals Section */}
       <section>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-navy-900">Deals</h1>
-            <p className="mt-1 text-sm text-navy-500">Your lease analysis history</p>
+            <h1 className="text-xl font-semibold tracking-tight text-navy-900">Deals</h1>
+            <p className="mt-0.5 text-sm text-navy-500">Your lease analysis history</p>
           </div>
           <Link href="/deals/new">
             <Button>+ New Analysis</Button>
           </Link>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-5">
           {loading ? (
             <div className="flex justify-center py-12">
               <Spinner size="lg" />
@@ -156,15 +156,15 @@ export default function DashboardPage() {
       <section>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-navy-900">Clients</h2>
-            <p className="mt-1 text-sm text-navy-500">
+            <h2 className="text-xl font-semibold tracking-tight text-navy-900">Clients</h2>
+            <p className="mt-0.5 text-sm text-navy-500">
               Manage clients and economic questionnaires
             </p>
           </div>
           <Button onClick={() => setShowClientModal(true)}>+ Add Client</Button>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-5">
           {clientsLoading ? (
             <div className="flex justify-center py-8">
               <Spinner size="lg" />

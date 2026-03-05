@@ -40,7 +40,7 @@ export function ClientTable({
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-xl border-2 border-dashed border-navy-200 py-14 text-center">
+      <div className="flex flex-col items-center rounded-xl border border-dashed border-navy-200 bg-white py-14 text-center shadow-[0_1px_3px_0_rgb(16_42_67/0.04)]">
         <p className="text-sm font-medium text-navy-900">No clients yet</p>
         <p className="mt-2 text-xs text-navy-500">
           Add a client to send them an economic questionnaire
@@ -50,10 +50,10 @@ export function ClientTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-[0_1px_3px_0_rgb(16_42_67/0.06),0_1px_2px_-1px_rgb(16_42_67/0.06)]">
       <table className="w-full min-w-[700px] text-sm">
         <thead>
-          <tr className="border-b border-navy-200 bg-navy-50/50">
+          <tr className="border-b border-navy-200 bg-navy-50/60">
             <th className="py-3 pl-5 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
               Client
             </th>
@@ -78,7 +78,7 @@ export function ClientTable({
           {clients.map((client) => (
             <tr
               key={client.id}
-              className="border-b border-navy-50 transition-colors hover:bg-navy-50/40"
+              className="group border-b border-navy-100/60 transition-colors hover:bg-navy-50/40"
             >
               <td className="py-3.5 pl-5 pr-3">
                 <div>
@@ -94,12 +94,12 @@ export function ClientTable({
                 </div>
               </td>
               <td className="px-4 py-3.5 text-navy-600">
-                {client.industry || "—"}
+                {client.industry || "\u2014"}
               </td>
               <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
                 {client.companySize
                   ? sizeLabels[client.companySize] || client.companySize
-                  : "—"}
+                  : "\u2014"}
               </td>
               <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
                 {client._count.deals}
@@ -113,9 +113,9 @@ export function ClientTable({
                   >
                     <Badge
                       variant="success"
-                      className="cursor-pointer hover:bg-green-200 transition-colors"
+                      className="cursor-pointer transition-colors hover:bg-emerald-100"
                     >
-                      Completed ↗
+                      Completed
                     </Badge>
                   </button>
                 ) : (
@@ -127,7 +127,7 @@ export function ClientTable({
                   <button
                     type="button"
                     onClick={() => onCopyLink(client.token)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 hover:bg-navy-100"
+                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
                     title="Copy questionnaire link"
                   >
                     Link
@@ -135,14 +135,14 @@ export function ClientTable({
                   <button
                     type="button"
                     onClick={() => onEdit(client)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 hover:bg-navy-100"
+                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => onDelete(client.id)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
                   >
                     Delete
                   </button>

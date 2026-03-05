@@ -232,7 +232,7 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
 
   if (deals.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-navy-200 py-20 text-center">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-navy-200 bg-white py-20 text-center shadow-[0_1px_3px_0_rgb(16_42_67/0.04)]">
         <p className="text-lg font-medium text-navy-900">No analyses yet</p>
         <p className="mt-2 text-sm text-navy-500">
           Start by comparing 2-5 lease options
@@ -250,10 +250,10 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
     "py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-500 cursor-pointer select-none hover:text-navy-700 transition-colors";
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-[0_1px_3px_0_rgb(16_42_67/0.06),0_1px_2px_-1px_rgb(16_42_67/0.06)]">
       <table className="w-full min-w-[800px] text-sm">
         <thead>
-          <tr className="border-b border-navy-200 bg-navy-50/50">
+          <tr className="border-b border-navy-200 bg-navy-50/60">
             <th
               className={`${thClass} pl-5 pr-3`}
               onClick={() => handleHeaderClick("dealName")}
@@ -346,7 +346,7 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
             return (
               <tr
                 key={deal.id}
-                className="group border-b border-navy-50 transition-colors hover:bg-navy-50/50"
+                className="group border-b border-navy-100/60 transition-colors hover:bg-navy-50/40"
               >
                 {/* Deal Name */}
                 <td className="py-3.5 pl-5 pr-3">
@@ -499,7 +499,7 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
                     </select>
                   ) : (
                     <span
-                      className={`inline-flex cursor-pointer items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-opacity hover:opacity-80 ${stageConfig?.color ?? "bg-navy-100 text-navy-700"}`}
+                      className={`inline-flex cursor-pointer items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ring-current/10 transition-opacity hover:opacity-80 ${stageConfig?.color ?? "bg-navy-100 text-navy-700"}`}
                       onClick={() =>
                         startEdit(deal.id, "stage", deal.stage)
                       }
@@ -537,7 +537,7 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
                     <button
                       type="button"
                       onClick={() => onDelete(deal.id)}
-                      className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                      className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
                     >
                       Delete
                     </button>

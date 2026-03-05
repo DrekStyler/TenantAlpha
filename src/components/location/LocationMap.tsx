@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const google: any;
+
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   APIProvider,

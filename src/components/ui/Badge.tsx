@@ -12,11 +12,11 @@ export function Badge({
   className = "",
 }: BadgeProps) {
   const variants: Record<BadgeVariant, string> = {
-    default: "bg-navy-100 text-navy-700",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-amber-100 text-amber-800",
-    error: "bg-red-100 text-red-700",
-    gold: "bg-gold-400 text-navy-900",
+    default: "bg-navy-100 text-navy-700 ring-1 ring-inset ring-navy-200",
+    success: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+    warning: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+    error: "bg-red-50 text-red-600 ring-1 ring-inset ring-red-200",
+    gold: "bg-gold-400/15 text-gold-600 ring-1 ring-inset ring-gold-300/40",
   };
 
   return (

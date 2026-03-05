@@ -33,15 +33,6 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           input,
-          // Broad address types — commercial properties may be geocoded as various types
-          includedPrimaryTypes: [
-            "street_address",
-            "subpremise",
-            "premise",
-            "route",
-            "establishment",
-            "geocode",
-          ],
           ...(sessionToken ? { sessionToken } : {}),
         }),
       }

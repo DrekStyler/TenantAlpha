@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useOptionLocation } from "@/hooks/useLocationData";
 import { ScoreBadge } from "./ScoreBadge";
 import { AmenityList } from "./AmenityList";
@@ -23,28 +22,7 @@ export function LocationPreview({
     optionId
   );
 
-  // Track the previous address to detect autocomplete selections
-  const prevAddressRef = useRef(address);
-  const hasFetchedRef = useRef(false);
-
-  // Auto-fetch when address changes (user selected from autocomplete)
-  useEffect(() => {
-    if (
-      address &&
-      optionId &&
-      address !== prevAddressRef.current &&
-      !hasFetchedRef.current
-    ) {
-      prevAddressRef.current = address;
-      hasFetchedRef.current = true;
-      fetchLocation().finally(() => {
-        hasFetchedRef.current = false;
-      });
-    }
-    // Only re-run when address or optionId changes — NOT loading/fetchLocation
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, optionId]);
-
+  // Don't render until we have a saved option with an address
   if (!optionId || !address) return null;
 
   return (
@@ -71,6 +49,12 @@ export function LocationPreview({
         <div className="flex justify-center py-6">
           <Spinner size="sm" />
         </div>
+      )}
+
+      {!loading && !location && !error && (
+        <p className="mt-2 text-xs text-navy-400">
+          Click &quot;Fetch Location Data&quot; to get walk/drive scores and nearby amenities.
+        </p>
       )}
 
       {location && (

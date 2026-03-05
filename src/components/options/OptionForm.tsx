@@ -136,6 +136,8 @@ export function OptionForm({
             onChange={(v) => setValue("propertyAddress", v)}
             onSelect={(address) => {
               setValue("propertyAddress", address);
+              // Auto-save form so LocationPreview can read address from DB
+              setTimeout(() => handleSubmit(onSubmit)(), 0);
             }}
             error={errors.propertyAddress?.message}
           />

@@ -18,6 +18,9 @@ export interface LeaseOptionInput {
   otherMonthlyFees?: number;
   tiAllowance?: number; // $ total
   estimatedBuildoutCost?: number; // $ total
+  cashAllowance?: number; // $ total (moving allowance, etc.)
+  expenseStopPerSF?: number; // $/SF/year
+  baseYearOpExPerSF?: number; // $/SF/year (base year stop)
   discountRate: number; // e.g. 8.0 for 8%
   annualRevenue?: number;
   employees?: number;
@@ -62,6 +65,13 @@ export interface OptionMetrics {
   totalFreeRentSavings: number;
   tiGap: number;
   monthlyBreakdown: MonthlyCost[];
+  // Broker-grade metrics
+  netEffectiveRentPerSF: number;
+  straightLineMonthlyRent: number;
+  expenseStopExposure: number;
+  effectiveRentPerUSF: number | null;
+  tiAllowancePerRSF: number;
+  pvOfConcessions: number;
 }
 
 export interface ComparisonResult {

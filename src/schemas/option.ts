@@ -29,8 +29,11 @@ export const leaseOptionSchema = z.object({
   opExPerSF: z.number().min(0).optional().catch(undefined),
   opExEscalation: z.number().min(0).max(50).optional().catch(undefined),
   propertyTax: z.number().min(0).optional().catch(undefined),
+  expenseStopPerSF: z.number().min(0).optional().catch(undefined),
+  baseYearOpExPerSF: z.number().min(0).optional().catch(undefined),
   parkingCostMonthly: z.number().min(0).optional().catch(undefined),
   otherMonthlyFees: z.number().min(0).optional().catch(undefined),
+  cashAllowance: z.number().min(0).optional().catch(undefined),
   tiAllowance: z.number().min(0).optional().catch(undefined),
   estimatedBuildoutCost: z.number().min(0).optional().catch(undefined),
   existingCondition: z

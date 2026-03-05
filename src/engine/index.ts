@@ -17,6 +17,8 @@ export {
   calculateEffectiveRent,
   calculateEffectiveRentWithTI,
   calculateTIGap,
+  calculateTIAllowancePerRSF,
+  calculateEffectiveRentPerUSF,
 } from "./effectiveRent";
 export { calculateNPV } from "./npv";
 export { calculateAnnualCashFlows } from "./cashFlow";
@@ -27,6 +29,10 @@ export {
   calculateRentAsPercentOfRevenueByYear,
 } from "./revenueMetrics";
 export { calculateFreeRentSavings } from "./freeRent";
+export { calculateNetEffectiveRent } from "./netEffectiveRent";
+export { calculateStraightLineRent } from "./straightLineRent";
+export { calculateExpenseStopExposure } from "./expenseStop";
+export { calculatePVOfConcessions } from "./concessionsPV";
 export { compareOptions } from "./comparison";
 
 import type {
@@ -40,6 +46,8 @@ import {
   calculateEffectiveRent,
   calculateEffectiveRentWithTI,
   calculateTIGap,
+  calculateTIAllowancePerRSF,
+  calculateEffectiveRentPerUSF,
 } from "./effectiveRent";
 import { calculateNPV } from "./npv";
 import { calculateAnnualCashFlows } from "./cashFlow";
@@ -47,6 +55,10 @@ import { calculatePaybackPeriod } from "./paybackPeriod";
 import { calculateCostPerEmployee } from "./employeeCost";
 import { calculateRentAsPercentOfRevenue } from "./revenueMetrics";
 import { calculateFreeRentSavings } from "./freeRent";
+import { calculateNetEffectiveRent } from "./netEffectiveRent";
+import { calculateStraightLineRent } from "./straightLineRent";
+import { calculateExpenseStopExposure } from "./expenseStop";
+import { calculatePVOfConcessions } from "./concessionsPV";
 import { compareOptions } from "./comparison";
 
 /**
@@ -113,6 +125,34 @@ export function calculateOptionMetrics(
     input.freeRentMonths
   );
 
+  // Broker-grade metrics
+  const netEffectiveRentPerSF = calculateNetEffectiveRent(
+    monthlyBreakdown,
+    input.rentableSF,
+    input.termMonths
+  );
+
+  const straightLineMonthlyRent = calculateStraightLineRent(
+    monthlyBreakdown,
+    input.termMonths
+  );
+
+  const expenseStopExposure = calculateExpenseStopExposure(input);
+
+  const effectiveRentPerUSF = calculateEffectiveRentPerUSF(
+    effectiveRentPerSF,
+    input.rentableSF,
+    input.usableSF,
+    input.loadFactor
+  );
+
+  const tiAllowancePerRSF = calculateTIAllowancePerRSF(
+    input.tiAllowance,
+    input.rentableSF
+  );
+
+  const pvOfConcessions = calculatePVOfConcessions(input);
+
   return {
     optionName: input.optionName,
     rentableSF: input.rentableSF,
@@ -128,6 +168,12 @@ export function calculateOptionMetrics(
     totalFreeRentSavings,
     tiGap,
     monthlyBreakdown,
+    netEffectiveRentPerSF,
+    straightLineMonthlyRent,
+    expenseStopExposure,
+    effectiveRentPerUSF,
+    tiAllowancePerRSF,
+    pvOfConcessions,
   };
 }
 

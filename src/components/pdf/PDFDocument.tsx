@@ -377,6 +377,58 @@ export function PDFDocument({
         <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
       </Page>
 
+      {/* ── LEASE ECONOMICS ── */}
+      <Page size="LETTER" style={s.page}>
+        <View style={s.pageHeader}>
+          <Text style={s.pageHeaderTitle}>Lease Economics</Text>
+          <Text style={s.pageHeaderSub}>Broker-grade metrics for each option</Text>
+        </View>
+
+        <View style={s.table}>
+          <View style={s.tableHeaderRow}>
+            <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Option</Text>
+            <Text style={s.tableHeaderCell}>Net Eff. Rent</Text>
+            <Text style={s.tableHeaderCell}>Straight-Line</Text>
+            <Text style={s.tableHeaderCell}>TI/RSF</Text>
+            <Text style={s.tableHeaderCell}>Eff. Rent/USF</Text>
+            <Text style={s.tableHeaderCell}>PV Concessions</Text>
+            <Text style={s.tableHeaderCell}>Exp. Stop Exp.</Text>
+          </View>
+          {calculationResults.options.map((opt, i) => {
+            const isBest = opt.optionName === bestValueOption;
+            return (
+              <View key={i} style={isBest ? { ...s.tableRow, backgroundColor: "#e6f0f8" } : i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
+                <Text style={[isBest ? s.tableCellBold : s.tableCell, { flex: 1.5, fontSize: 8 }]}>
+                  {opt.optionName}
+                </Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmtSF(opt.netEffectiveRentPerSF)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmt(opt.straightLineMonthlyRent)}/mo</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmtSF(opt.tiAllowancePerRSF)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>
+                  {opt.effectiveRentPerUSF != null ? fmtSF(opt.effectiveRentPerUSF) : "—"}
+                </Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>
+                  {opt.pvOfConcessions > 0 ? fmt(opt.pvOfConcessions) : "—"}
+                </Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>
+                  {opt.expenseStopExposure > 0 ? fmt(opt.expenseStopExposure) : "—"}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ fontSize: 8, color: colors.muted, lineHeight: 1.5 }}>
+            Net Effective Rent: Rent-only cost per SF/yr (excludes OpEx, parking). Straight-Line Rent: Average monthly base rent for GAAP accounting.{"\n"}
+            TI/RSF: TI allowance per rentable SF. Eff. Rent/USF: Effective rent per usable SF. PV Concessions: Present value of all concessions (free rent + TI + cash).{"\n"}
+            Exp. Stop Exposure: Total tenant exposure above the expense stop over the lease term.
+          </Text>
+        </View>
+
+        <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
+      </Page>
+
       {/* ── CASH FLOW TABLES ── */}
       {calculationResults.options.map((opt) => (
         <Page key={opt.optionName} size="LETTER" style={s.page}>

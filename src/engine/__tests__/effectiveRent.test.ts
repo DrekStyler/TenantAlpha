@@ -3,6 +3,8 @@ import {
   calculateEffectiveRent,
   calculateEffectiveRentWithTI,
   calculateTIGap,
+  calculateTIAllowancePerRSF,
+  calculateEffectiveRentPerUSF,
 } from "../effectiveRent";
 import { SAMPLE_OPTIONS } from "@/config/sampleData";
 
@@ -48,5 +50,50 @@ describe("calculateEffectiveRentWithTI", () => {
     const withoutTI = calculateEffectiveRent(1500000, 6000, 60);
     const withTI = calculateEffectiveRentWithTI(1500000, 0, 6000, 60);
     expect(withTI).toBe(withoutTI);
+  });
+});
+
+describe("calculateTIAllowancePerRSF", () => {
+  it("calculates TI per RSF correctly", () => {
+    // $300,000 / 6000 SF = $50/SF
+    expect(calculateTIAllowancePerRSF(300000, 6000)).toBe(50);
+  });
+
+  it("returns 0 when no TI allowance", () => {
+    expect(calculateTIAllowancePerRSF(undefined, 6000)).toBe(0);
+  });
+
+  it("returns 0 for zero SF", () => {
+    expect(calculateTIAllowancePerRSF(300000, 0)).toBe(0);
+  });
+});
+
+describe("calculateEffectiveRentPerUSF", () => {
+  it("calculates per USF using usableSF directly", () => {
+    // Eff rent $50/RSF, 6000 RSF, 5000 USF
+    // Per USF = 50 * (6000 / 5000) = $60/USF
+    const result = calculateEffectiveRentPerUSF(50, 6000, 5000);
+    expect(result).toBe(60);
+  });
+
+  it("calculates per USF using load factor", () => {
+    // 15% load factor: USF = 6000 / 1.15 = 5217.39
+    // Per USF = 50 * (6000 / 5217.39) = 57.50
+    const result = calculateEffectiveRentPerUSF(50, 6000, undefined, 15);
+    expect(result).toBeCloseTo(57.5, 1);
+  });
+
+  it("prefers usableSF over loadFactor when both provided", () => {
+    const result = calculateEffectiveRentPerUSF(50, 6000, 5000, 15);
+    // Should use usableSF = 5000, not computed from load factor
+    expect(result).toBe(60);
+  });
+
+  it("returns null when neither usableSF nor loadFactor provided", () => {
+    expect(calculateEffectiveRentPerUSF(50, 6000)).toBeNull();
+  });
+
+  it("returns null for zero RSF", () => {
+    expect(calculateEffectiveRentPerUSF(50, 0, 5000)).toBeNull();
   });
 });

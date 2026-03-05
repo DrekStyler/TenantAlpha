@@ -136,9 +136,14 @@ model LeaseOption {
   opExEscalation Float? @map("opex_escalation")
   propertyTax    Float? @map("property_tax")
 
+  // Expense Stops
+  expenseStopPerSF    Float? @map("expense_stop_per_sf")    // $/SF/yr
+  baseYearOpExPerSF   Float? @map("base_year_opex_per_sf")  // $/SF/yr (base year stop)
+
   // Additional Costs
   parkingCostMonthly Float? @map("parking_cost_monthly")
   otherMonthlyFees   Float? @map("other_monthly_fees")
+  cashAllowance      Float? @map("cash_allowance")          // $ total (moving allowance, etc.)
 
   // Tenant Improvements
   tiAllowance           Float?             @map("ti_allowance")

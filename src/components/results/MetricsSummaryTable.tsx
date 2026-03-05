@@ -140,6 +140,102 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Lease Economics Table */}
+      <div className="overflow-x-auto">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy-500">
+          Lease Economics
+        </h3>
+        <table className="w-full min-w-[640px] text-sm">
+          <thead>
+            <tr className="border-b border-navy-200">
+              <th className="py-3 pl-1 pr-4 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
+                Option
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                Net Eff. Rent
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                Straight-Line
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                TI/RSF
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                Eff. Rent/USF
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                PV Concessions
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+                Exp. Stop Exp.
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {options.map((opt, i) => {
+              const isBest = opt.optionName === bestValueOption;
+              // Rank by net effective rent
+              const nerRanked = [...options]
+                .sort((a, b) => a.netEffectiveRentPerSF - b.netEffectiveRentPerSF)
+                .map((o) => o.optionName);
+              const nerRank = nerRanked.indexOf(opt.optionName) + 1;
+
+              return (
+                <tr
+                  key={opt.optionName}
+                  className={`border-b border-navy-50 transition-colors ${
+                    isBest ? "bg-navy-50/80" : "hover:bg-navy-50/40"
+                  }`}
+                >
+                  <td className="py-3.5 pl-1 pr-4">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="h-3 w-3 shrink-0 rounded-full"
+                        style={{ backgroundColor: OPTION_COLORS[i % OPTION_COLORS.length] }}
+                      />
+                      <span className={`font-medium ${isBest ? "text-navy-900" : "text-navy-700"}`}>
+                        {opt.optionName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    <span className="tabular-nums text-navy-700">
+                      ${opt.netEffectiveRentPerSF.toFixed(2)}
+                    </span>
+                    <RankBadge rank={nerRank} />
+                  </td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
+                    {formatCurrency(opt.straightLineMonthlyRent)}/mo
+                  </td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
+                    ${opt.tiAllowancePerRSF.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
+                    {opt.effectiveRentPerUSF != null
+                      ? `$${opt.effectiveRentPerUSF.toFixed(2)}`
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
+                    {opt.pvOfConcessions > 0
+                      ? formatCurrency(opt.pvOfConcessions)
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    {opt.expenseStopExposure > 0 ? (
+                      <span className="tabular-nums font-medium text-amber-600">
+                        {formatCurrency(opt.expenseStopExposure)}
+                      </span>
+                    ) : (
+                      <span className="text-navy-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

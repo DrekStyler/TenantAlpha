@@ -152,7 +152,7 @@ export function OptionForm({
           />
         )}
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           <Select
             label="Property Type"
             options={PROPERTY_TYPES.map((t) => ({
@@ -175,6 +175,32 @@ export function OptionForm({
             {errors.rentableSF && (
               <p className="text-xs text-red-500">{errors.rentableSF.message}</p>
             )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-navy-700">
+              Usable SF
+            </label>
+            <input
+              type="number"
+              placeholder="4500"
+              className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+              {...register("usableSF", { valueAsNumber: true })}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-navy-700">
+              Load Factor
+            </label>
+            <div className="relative flex items-center">
+              <input
+                type="number"
+                step="0.1"
+                placeholder="15"
+                className="w-full rounded-lg border border-navy-200 bg-white px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                {...register("loadFactor", { valueAsNumber: true })}
+              />
+              <span className="absolute right-3 text-sm text-navy-400">%</span>
+            </div>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-navy-700">
@@ -359,6 +385,38 @@ export function OptionForm({
                   </div>
                 </div>
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-navy-700">
+                    Expense Stop ($/SF/yr)
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm text-navy-400">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="12.00"
+                      className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                      {...register("expenseStopPerSF", { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-navy-700">
+                    Base Year OpEx ($/SF/yr)
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm text-navy-400">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="11.00"
+                      className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                      {...register("baseYearOpExPerSF", { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+              </div>
             </section>
           )}
 
@@ -395,6 +453,20 @@ export function OptionForm({
                     placeholder="500"
                     className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
                     {...register("otherMonthlyFees", { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-navy-700">
+                  Cash Allowance ($)
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-sm text-navy-400">$</span>
+                  <input
+                    type="number"
+                    placeholder="25000"
+                    className="w-full rounded-lg border border-navy-200 bg-white pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                    {...register("cashAllowance", { valueAsNumber: true })}
                   />
                 </div>
               </div>

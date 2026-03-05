@@ -21,8 +21,11 @@ export interface PrismaOption {
   opExPerSF?: number | null;
   opExEscalation?: number | null;
   propertyTax?: number | null;
+  expenseStopPerSF?: number | null;
+  baseYearOpExPerSF?: number | null;
   parkingCostMonthly?: number | null;
   otherMonthlyFees?: number | null;
+  cashAllowance?: number | null;
   tiAllowance?: number | null;
   estimatedBuildoutCost?: number | null;
   discountRate: number;
@@ -53,8 +56,11 @@ export function prismaOptionToLeaseInput(opt: PrismaOption): LeaseOptionInput {
     opExPerSF: opt.opExPerSF ?? undefined,
     opExEscalation: opt.opExEscalation ?? undefined,
     propertyTax: opt.propertyTax ?? undefined,
+    expenseStopPerSF: opt.expenseStopPerSF ?? undefined,
+    baseYearOpExPerSF: opt.baseYearOpExPerSF ?? undefined,
     parkingCostMonthly: opt.parkingCostMonthly ?? undefined,
     otherMonthlyFees: opt.otherMonthlyFees ?? undefined,
+    cashAllowance: opt.cashAllowance ?? undefined,
     tiAllowance: opt.tiAllowance ?? undefined,
     estimatedBuildoutCost: opt.estimatedBuildoutCost ?? undefined,
     discountRate: opt.discountRate,

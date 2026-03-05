@@ -10,8 +10,8 @@ const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 export async function geocodeAddress(
   address: string
 ): Promise<GeocodedLocation | null> {
-  if (!API_KEY) {
-    console.error("GOOGLE_MAPS_API_KEY not set");
+  if (!API_KEY || API_KEY === "placeholder") {
+    console.error("GOOGLE_MAPS_API_KEY not configured");
     return null;
   }
 
@@ -42,8 +42,8 @@ export async function fetchNearbyAmenities(
   lng: number,
   radiusMeters: number = 1600
 ): Promise<AmenityResult[]> {
-  if (!API_KEY) {
-    console.error("GOOGLE_MAPS_API_KEY not set");
+  if (!API_KEY || API_KEY === "placeholder") {
+    console.error("GOOGLE_MAPS_API_KEY not configured");
     return [];
   }
 

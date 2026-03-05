@@ -105,6 +105,12 @@ export async function POST(
   // Geocode the address
   const geo = await geocodeAddress(option.propertyAddress);
   if (!geo) {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey || apiKey === "placeholder") {
+      return badRequest(
+        "Google Maps API key not configured. Please set GOOGLE_MAPS_API_KEY in your environment variables."
+      );
+    }
     return badRequest(
       "Could not geocode this address. Please check the address and try again."
     );

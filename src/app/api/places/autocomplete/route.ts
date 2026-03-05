@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     return badRequest("Input must be at least 2 characters");
   }
 
-  if (!API_KEY) {
-    return badRequest("Google Maps API not configured");
+  if (!API_KEY || API_KEY === "placeholder") {
+    return ok({ predictions: [] });
   }
 
   try {

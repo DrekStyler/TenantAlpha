@@ -25,6 +25,7 @@ export function LocationPreview({
 
   // Track the previous address to detect autocomplete selections
   const prevAddressRef = useRef(address);
+  const hasFetchedRef = useRef(false);
 
   // Auto-fetch when address changes (user selected from autocomplete)
   useEffect(() => {
@@ -32,12 +33,17 @@ export function LocationPreview({
       address &&
       optionId &&
       address !== prevAddressRef.current &&
-      !loading
+      !hasFetchedRef.current
     ) {
       prevAddressRef.current = address;
-      fetchLocation();
+      hasFetchedRef.current = true;
+      fetchLocation().finally(() => {
+        hasFetchedRef.current = false;
+      });
     }
-  }, [address, optionId, loading, fetchLocation]);
+    // Only re-run when address or optionId changes — NOT loading/fetchLocation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, optionId]);
 
   if (!optionId || !address) return null;
 

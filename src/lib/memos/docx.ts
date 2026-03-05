@@ -14,11 +14,11 @@ import {
   BorderStyle,
   PageBreak,
   ShadingType,
-  Tab,
-  TabStopType,
-  TabStopPosition,
 } from "docx";
 import type { MemoSectionOutput, MemoSectionId } from "./types";
+
+/** Union type for document section children (paragraphs and tables) */
+type DocChild = Paragraph | Table;
 
 // ─── Color Constants ────────────────────────────────────────────
 
@@ -67,7 +67,7 @@ export async function buildMemoDocx(params: MemoDocxParams): Promise<Buffer> {
     tone,
   } = params;
 
-  const children: Paragraph[] = [];
+  const children: DocChild[] = [];
 
   // ── Cover Section ──
   children.push(...buildCoverSection(dealName, clientName, brokerName, brokerageName, generatedDate, audience, tone));
@@ -310,11 +310,11 @@ function buildCoverSection(
 
 // ─── Section Builder ────────────────────────────────────────────
 
-function buildSection(section: MemoSectionOutput): Paragraph[] {
-  const paragraphs: Paragraph[] = [];
+function buildSection(section: MemoSectionOutput): DocChild[] {
+  const elements: DocChild[] = [];
 
   // Section title
-  paragraphs.push(
+  elements.push(
     new Paragraph({
       text: section.sectionTitle,
       heading: HeadingLevel.HEADING_1,
@@ -323,7 +323,7 @@ function buildSection(section: MemoSectionOutput): Paragraph[] {
 
   // Bullets
   for (const bullet of section.bullets) {
-    paragraphs.push(
+    elements.push(
       new Paragraph({
         children: [
           new TextRun({
@@ -337,10 +337,10 @@ function buildSection(section: MemoSectionOutput): Paragraph[] {
     );
   }
 
-  // Tables
+  // Tables — rendered as native Word tables for proper alignment
   for (const tableData of section.tables) {
     // Table title
-    paragraphs.push(
+    elements.push(
       new Paragraph({
         children: [
           new TextRun({
@@ -354,22 +354,21 @@ function buildSection(section: MemoSectionOutput): Paragraph[] {
       })
     );
 
-    // Build table
-    const table = buildTable(tableData.columns, tableData.rows);
-    // Tables can't be pushed into Paragraph[] — we need to use a different approach
-    // The docx library requires tables to be children of Document sections
-    // For now, we'll render table data as tab-separated paragraphs
-    paragraphs.push(...buildTableAsParagraphs(tableData.columns, tableData.rows));
+    // Native Word table
+    elements.push(buildTable(tableData.columns, tableData.rows));
+
+    // Spacing after table
+    elements.push(new Paragraph({ spacing: { after: 120 } }));
   }
 
   // Callouts
   for (const callout of section.callouts) {
-    paragraphs.push(...buildCallout(callout.label, callout.text));
+    elements.push(...buildCallout(callout.label, callout.text));
   }
 
   // Assumptions
   if (section.assumptions.length > 0) {
-    paragraphs.push(
+    elements.push(
       new Paragraph({
         children: [
           new TextRun({
@@ -385,7 +384,7 @@ function buildSection(section: MemoSectionOutput): Paragraph[] {
     );
 
     for (const assumption of section.assumptions) {
-      paragraphs.push(
+      elements.push(
         new Paragraph({
           children: [
             new TextRun({
@@ -402,19 +401,45 @@ function buildSection(section: MemoSectionOutput): Paragraph[] {
     }
   }
 
-  return paragraphs;
+  return elements;
 }
 
-// ─── Table Builder ──────────────────────────────────────────────
+// ─── Table Builder (native Word tables) ─────────────────────────
+
+/** Standard cell margins for consistent spacing */
+const CELL_MARGINS = {
+  top: 40,
+  bottom: 40,
+  left: 80,
+  right: 80,
+} as const;
+
+/** Detect if a cell value looks numeric (currency, %, numbers) for right-alignment */
+function isNumericCell(value: string): boolean {
+  return /^[\s]*[\$\-\+]?[\d,]+\.?\d*[%]?[\s]*$/.test(value.trim()) ||
+    /^\$/.test(value.trim()) ||
+    /\d+%$/.test(value.trim()) ||
+    /^[\d,]+(\.\d+)?$/.test(value.trim());
+}
 
 function buildTable(columns: string[], rows: string[][]): Table {
   const colCount = columns.length;
-  const colWidth = Math.floor(9000 / colCount); // Distribute across ~6.25 inches
+  // Total usable width ~9360 DXA (6.5 inches at 1440 DXA/inch)
+  const totalWidth = 9360;
 
-  // Header row
+  // Smart column sizing: first column (labels) gets more space
+  const firstColWidth = Math.floor(totalWidth * 0.3);
+  const otherColWidth = colCount > 1
+    ? Math.floor((totalWidth - firstColWidth) / (colCount - 1))
+    : totalWidth;
+
+  const getColWidth = (idx: number) => idx === 0 ? firstColWidth : otherColWidth;
+
+  // Header row with navy background
   const headerRow = new TableRow({
+    tableHeader: true,
     children: columns.map(
-      (col) =>
+      (col, idx) =>
         new TableCell({
           children: [
             new Paragraph({
@@ -427,16 +452,19 @@ function buildTable(columns: string[], rows: string[][]): Table {
                   font: "Calibri",
                 }),
               ],
-              alignment: AlignmentType.LEFT,
+              alignment: idx === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+              spacing: { after: 0 },
             }),
           ],
           shading: { type: ShadingType.SOLID, color: NAVY },
-          width: { size: colWidth, type: WidthType.DXA },
+          width: { size: getColWidth(idx), type: WidthType.DXA },
+          margins: CELL_MARGINS,
+          verticalAlign: "center" as never,
         })
     ),
   });
 
-  // Data rows
+  // Data rows with alternating shading
   const dataRows = rows.map(
     (row, rowIdx) =>
       new TableRow({
@@ -450,18 +478,25 @@ function buildTable(columns: string[], rows: string[][]): Table {
                       text: cell,
                       size: 18,
                       color: TEXT_COLOR,
-                      bold: cellIdx === 0, // Bold first column (option name)
+                      bold: cellIdx === 0,
                       font: "Calibri",
                     }),
                   ],
-                  alignment: cellIdx > 0 ? AlignmentType.RIGHT : AlignmentType.LEFT,
+                  alignment: cellIdx === 0
+                    ? AlignmentType.LEFT
+                    : isNumericCell(cell)
+                      ? AlignmentType.RIGHT
+                      : AlignmentType.CENTER,
+                  spacing: { after: 0 },
                 }),
               ],
               shading:
-                rowIdx % 2 === 1
+                rowIdx % 2 === 0
                   ? { type: ShadingType.SOLID, color: NAVY_BG }
-                  : undefined,
-              width: { size: colWidth, type: WidthType.DXA },
+                  : { type: ShadingType.SOLID, color: WHITE },
+              width: { size: getColWidth(cellIdx), type: WidthType.DXA },
+              margins: CELL_MARGINS,
+              verticalAlign: "center" as never,
             })
         ),
       })
@@ -470,72 +505,15 @@ function buildTable(columns: string[], rows: string[][]): Table {
   return new Table({
     rows: [headerRow, ...dataRows],
     width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+      left: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+      right: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
+    },
   });
-}
-
-/**
- * Render table as formatted paragraphs (fallback since Document sections
- * accept both Paragraph and Table as children, but our section builder
- * uses Paragraph[]). We'll handle this by returning a special marker.
- *
- * Actually, docx FileChild union accepts both Paragraph and Table.
- * We need to adjust our approach to use FileChild[] instead of Paragraph[].
- */
-function buildTableAsParagraphs(columns: string[], rows: string[][]): Paragraph[] {
-  const paragraphs: Paragraph[] = [];
-  const separator = "   |   ";
-
-  // Header row
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: columns.join(separator),
-          bold: true,
-          size: 18,
-          color: NAVY,
-          font: "Calibri",
-        }),
-      ],
-      spacing: { after: 40 },
-      border: {
-        bottom: { style: BorderStyle.SINGLE, size: 2, color: NAVY },
-      },
-    })
-  );
-
-  // Data rows
-  for (let i = 0; i < rows.length; i++) {
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: rows[i].join(separator),
-            size: 18,
-            color: TEXT_COLOR,
-            font: "Calibri",
-          }),
-        ],
-        spacing: { after: 40 },
-        shading:
-          i % 2 === 1
-            ? { type: ShadingType.SOLID, color: NAVY_BG }
-            : undefined,
-      })
-    );
-  }
-
-  // Bottom border
-  paragraphs.push(
-    new Paragraph({
-      border: {
-        bottom: { style: BorderStyle.SINGLE, size: 1, color: NAVY_LIGHT },
-      },
-      spacing: { after: 120 },
-    })
-  );
-
-  return paragraphs;
 }
 
 // ─── Callout Builder ────────────────────────────────────────────

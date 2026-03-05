@@ -48,7 +48,9 @@ export function AmenityList({ amenities, compact = false }: AmenityListProps) {
             className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:bg-navy-50 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <span>{group.icon}</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded bg-navy-100 text-[10px] font-bold text-navy-600">
+                {group.abbr}
+              </span>
               <span className="font-medium text-navy-700">{group.label}</span>
               <span className="rounded-full bg-navy-100 px-1.5 py-0.5 text-xs tabular-nums text-navy-600">
                 {group.items.length}
@@ -71,7 +73,7 @@ export function AmenityList({ amenities, compact = false }: AmenityListProps) {
                     {formatDistance(item.distanceMeters)}
                     {item.rating != null && (
                       <span className="ml-1.5 text-amber-500">
-                        {item.rating.toFixed(1)}★
+                        {item.rating.toFixed(1)}/5
                       </span>
                     )}
                   </span>
@@ -85,7 +87,9 @@ export function AmenityList({ amenities, compact = false }: AmenityListProps) {
   );
 }
 
+/** Convert meters to a human-readable distance in miles */
 function formatDistance(meters: number): string {
-  if (meters < 1000) return `${meters}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
+  const miles = meters / 1609.344;
+  if (miles < 0.1) return `${Math.round(meters * 3.28084)} ft`;
+  return `${miles.toFixed(1)} mi`;
 }

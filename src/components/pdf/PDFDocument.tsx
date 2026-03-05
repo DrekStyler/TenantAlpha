@@ -229,7 +229,7 @@ export function PDFDocument({
           <Text style={s.bannerTitle}>{bestValueOption}</Text>
           {bestValueReasons.map((r, i) => (
             <View key={i} style={s.bannerReason}>
-              <Text style={s.bannerCheck}>✓</Text>
+              <Text style={s.bannerCheck}>-</Text>
               <Text style={{ fontSize: 10, color: "#c8d8e8", flex: 1 }}>{r}</Text>
             </View>
           ))}
@@ -338,7 +338,7 @@ export function PDFDocument({
             return (
               <View key={i} style={isBest ? { ...s.tableRow, backgroundColor: "#e6f0f8" } : i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
                 <Text style={[isBest ? s.tableCellBold : s.tableCell, { flex: 1.5, fontSize: 8 }]}>
-                  {opt.optionName}{isBest ? " ★" : ""}
+                  {opt.optionName}{isBest ? " *" : ""}
                 </Text>
                 <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmt(opt.totalOccupancyCost)}</Text>
                 <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmt(opt.npvOfCosts)}</Text>
@@ -541,7 +541,7 @@ export function PDFDocument({
           {/* Score Legend */}
           <View style={{ marginTop: 8 }}>
             <Text style={{ fontSize: 8, color: colors.muted, lineHeight: 1.5 }}>
-              Walk Score (0–100): Measures walkability based on nearby amenities within 400m. Drive Score (0–100): Measures accessibility by car within 1,600m. Scores ≥ 70 = Excellent, 40–69 = Moderate, &lt; 40 = Limited. Higher counts in the amenity comparison indicate more options within the search radius.
+              Walk Score (0-100): Measures walkability based on nearby amenities within 0.25 mi. Drive Score (0-100): Measures accessibility by car within 1 mi. Scores 70+ = Excellent, 40-69 = Moderate, below 40 = Limited. Higher counts in the amenity comparison indicate more options within the search radius.
             </Text>
           </View>
 

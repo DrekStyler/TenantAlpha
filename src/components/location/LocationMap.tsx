@@ -168,12 +168,12 @@ export function LocationMap({
                       amenity.name,
                       amenity.latitude,
                       amenity.longitude,
-                      `${amenityCategoryMap[amenity.category]?.label ?? amenity.category}${amenity.rating != null ? ` — ${amenity.rating.toFixed(1)}★` : ""}`
+                      `${amenityCategoryMap[amenity.category]?.label ?? amenity.category}${amenity.rating != null ? ` — ${amenity.rating.toFixed(1)}/5` : ""}`
                     )
                   }
                 >
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] shadow-sm border border-navy-200">
-                    {amenityCategoryMap[amenity.category]?.icon ?? "📍"}
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-navy-600 shadow-sm border border-navy-200">
+                    {amenityCategoryMap[amenity.category]?.abbr ?? "?"}
                   </div>
                 </AdvancedMarker>
               ))

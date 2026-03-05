@@ -131,7 +131,7 @@ export function LocationTab({ dealId }: LocationTabProps) {
               return (
                 <tr key={cat.key} className="border-b border-navy-50">
                   <td className="py-2.5 pl-1 pr-3 text-navy-600">
-                    <span className="mr-1.5">{cat.icon}</span>
+                    <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded bg-navy-100 text-[10px] font-bold text-navy-600">{cat.abbr}</span>
                     {cat.label}
                   </td>
                   {counts.map((count, i) => (

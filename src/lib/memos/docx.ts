@@ -523,7 +523,7 @@ function buildCallout(label: string, text: string): Paragraph[] {
     new Paragraph({
       children: [
         new TextRun({
-          text: `▎ ${label}`,
+          text: label,
           bold: true,
           size: 22,
           color: NAVY,

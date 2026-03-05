@@ -33,7 +33,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
           <ul className="space-y-2">
             {bestValueReasons.map((reason, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-navy-100">
-                <span className="mt-0.5 shrink-0 font-bold text-gold-400">✓</span>
+                <span className="mt-0.5 shrink-0 font-bold text-gold-400">&mdash;</span>
                 {reason}
               </li>
             ))}

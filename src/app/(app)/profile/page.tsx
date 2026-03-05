@@ -194,7 +194,7 @@ export default function ProfilePage() {
             </Button>
             {saved && (
               <span className="text-sm font-medium text-green-600">
-                ✓ Saved
+                Saved
               </span>
             )}
           </div>

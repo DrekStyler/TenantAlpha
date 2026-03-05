@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { formatDistanceToNow } from "date-fns";
 import { PROPERTY_TYPES, DEAL_STAGE_CONFIG } from "@/lib/constants";
 import type { DealStage } from "@/schemas/deal";
 
@@ -31,8 +30,7 @@ type SortKey =
   | "sfRange"
   | "stage"
   | "status"
-  | "optionCount"
-  | "updatedAt";
+  | "optionCount";
 
 type SortDir = "asc" | "desc";
 
@@ -112,8 +110,8 @@ function getDealHref(deal: DealRow): string {
 // ─── Component ──────────────────────────────────────────────────
 
 export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("updatedAt");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortKey, setSortKey] = useState<SortKey>("dealName");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState("");
   const [saving, setSaving] = useState(false);
@@ -168,10 +166,6 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
           break;
         case "optionCount":
           cmp = a._count.options - b._count.options;
-          break;
-        case "updatedAt":
-          cmp =
-            new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
           break;
       }
       return sortDir === "asc" ? cmp : -cmp;
@@ -257,7 +251,7 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
 
   return (
     <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-sm">
-      <table className="w-full min-w-[960px] text-sm">
+      <table className="w-full min-w-[800px] text-sm">
         <thead>
           <tr className="border-b border-navy-200 bg-navy-50/50">
             <th
@@ -333,17 +327,6 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
               Opts
               <SortArrow
                 columnKey="optionCount"
-                activeKey={sortKey}
-                dir={sortDir}
-              />
-            </th>
-            <th
-              className={`${thClass} px-4`}
-              onClick={() => handleHeaderClick("updatedAt")}
-            >
-              Updated
-              <SortArrow
-                columnKey="updatedAt"
                 activeKey={sortKey}
                 dir={sortDir}
               />
@@ -537,13 +520,6 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
                 {/* Options Count */}
                 <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
                   {deal._count.options}
-                </td>
-
-                {/* Updated */}
-                <td className="px-4 py-3.5 whitespace-nowrap text-navy-400">
-                  {formatDistanceToNow(new Date(deal.updatedAt), {
-                    addSuffix: true,
-                  })}
                 </td>
 
                 {/* Actions */}

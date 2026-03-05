@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/Badge";
-import { formatDistanceToNow } from "date-fns";
 
 interface ClientRow {
   id: string;
@@ -51,11 +50,11 @@ export function ClientTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-sm">
+    <div className="overflow-x-auto rounded-xl border border-navy-200 bg-white shadow-sm">
+      <table className="w-full min-w-[700px] text-sm">
         <thead>
-          <tr className="border-b border-navy-200">
-            <th className="py-3 pl-1 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
+          <tr className="border-b border-navy-200 bg-navy-50/50">
+            <th className="py-3 pl-5 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
               Client
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-500">
@@ -70,7 +69,7 @@ export function ClientTable({
             <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-navy-500">
               Questionnaire
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
+            <th className="px-4 py-3 pr-5 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
               Actions
             </th>
           </tr>
@@ -81,7 +80,7 @@ export function ClientTable({
               key={client.id}
               className="border-b border-navy-50 transition-colors hover:bg-navy-50/40"
             >
-              <td className="py-3.5 pl-1 pr-3">
+              <td className="py-3.5 pl-5 pr-3">
                 <div>
                   <span className="font-medium text-navy-900">
                     {client.name}
@@ -123,7 +122,7 @@ export function ClientTable({
                   <Badge variant="warning">Pending</Badge>
                 )}
               </td>
-              <td className="px-4 py-3.5 text-right">
+              <td className="px-4 py-3.5 pr-5 text-right">
                 <div className="flex items-center justify-end gap-1.5">
                   <button
                     type="button"

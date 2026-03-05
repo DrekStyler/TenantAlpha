@@ -22,31 +22,52 @@ export async function POST(req: Request) {
   }
 
   try {
-    const url = new URL(
-      "https://maps.googleapis.com/maps/api/place/autocomplete/json"
+    // Use the new Places API (v1) — matches the API enabled for nearby search
+    const placesRes = await fetch(
+      "https://places.googleapis.com/v1/places:autocomplete",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": API_KEY,
+        },
+        body: JSON.stringify({
+          input,
+          includedPrimaryTypes: ["street_address", "subpremise", "premise", "route"],
+          ...(sessionToken ? { sessionToken } : {}),
+        }),
+      }
     );
-    url.searchParams.set("input", input);
-    url.searchParams.set("key", API_KEY);
-    url.searchParams.set("types", "address");
-    if (sessionToken) {
-      url.searchParams.set("sessiontoken", sessionToken);
+
+    if (!placesRes.ok) {
+      console.error("[places/autocomplete] API error:", placesRes.status, await placesRes.text());
+      return ok({ predictions: [] });
     }
 
-    const placesRes = await fetch(url.toString());
     const data = await placesRes.json();
+    const suggestions = data.suggestions ?? [];
 
-    if (data.status === "OK" && data.predictions) {
-      return ok({
-        predictions: data.predictions.map(
-          (p: { place_id: string; description: string }) => ({
-            placeId: p.place_id,
-            description: p.description,
-          })
-        ),
-      });
-    }
+    const predictions = suggestions
+      .filter((s: { placePrediction?: unknown }) => s.placePrediction)
+      .map(
+        (s: {
+          placePrediction: {
+            placeId: string;
+            text: { text: string };
+            structuredFormat?: {
+              mainText?: { text: string };
+              secondaryText?: { text: string };
+            };
+          };
+        }) => ({
+          placeId: s.placePrediction.placeId,
+          description: s.placePrediction.text.text,
+          mainText: s.placePrediction.structuredFormat?.mainText?.text ?? "",
+          secondaryText: s.placePrediction.structuredFormat?.secondaryText?.text ?? "",
+        })
+      );
 
-    return ok({ predictions: [] });
+    return ok({ predictions });
   } catch (err) {
     console.error("Autocomplete error:", err);
     return ok({ predictions: [] });

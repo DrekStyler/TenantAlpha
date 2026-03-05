@@ -11,6 +11,8 @@ import {
 interface Prediction {
   placeId: string;
   description: string;
+  mainText?: string;
+  secondaryText?: string;
 }
 
 interface AddressAutocompleteProps {
@@ -28,7 +30,7 @@ export function AddressAutocomplete({
   onSelect,
   error,
   label = "Property Address",
-  placeholder = "123 Main St, Suite 400",
+  placeholder = "Start typing an address…",
 }: AddressAutocompleteProps) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -202,13 +204,11 @@ export function AddressAutocomplete({
                 handleSelectPrediction(prediction);
               }}
               onMouseEnter={() => setActiveIndex(index)}
-              className={`cursor-pointer px-4 py-2.5 text-sm text-navy-900 ${
+              className={`cursor-pointer px-4 py-2.5 text-sm transition-colors ${
                 index === activeIndex ? "bg-navy-50" : "hover:bg-navy-50"
-              } ${index === 0 ? "rounded-t-lg" : ""} ${
-                index === predictions.length - 1 ? "" : ""
-              }`}
+              } ${index === 0 ? "rounded-t-lg" : ""}`}
             >
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2.5">
                 <svg
                   className="mt-0.5 h-4 w-4 shrink-0 text-navy-400"
                   fill="none"
@@ -227,7 +227,24 @@ export function AddressAutocomplete({
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="truncate">{prediction.description}</span>
+                <div className="min-w-0 flex-1">
+                  {prediction.mainText ? (
+                    <>
+                      <span className="font-medium text-navy-900">
+                        {prediction.mainText}
+                      </span>
+                      {prediction.secondaryText && (
+                        <span className="ml-1 text-navy-400">
+                          {prediction.secondaryText}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-navy-900 truncate">
+                      {prediction.description}
+                    </span>
+                  )}
+                </div>
               </div>
             </li>
           ))}

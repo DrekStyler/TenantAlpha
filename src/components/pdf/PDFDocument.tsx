@@ -513,7 +513,7 @@ export function PDFDocument({
                 return (
                   <View key={cat.key} style={s.tableRow}>
                     <Text style={[s.tableCell, { flex: 1.5 }]}>
-                      {cat.icon} {cat.label}
+                      {cat.label}
                     </Text>
                     {counts.map((count, i) => (
                       <Text

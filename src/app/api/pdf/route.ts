@@ -48,25 +48,23 @@ export async function POST(req: Request) {
     where: { clerkUserId: userId },
   });
 
-  // Build location data for PDF (only options with geocoded data)
-  const locationData = deal.options
-    .filter((opt) => opt.latitude != null && opt.longitude != null)
-    .map((opt) => ({
-      optionName: opt.optionName,
-      propertyAddress: opt.propertyAddress,
-      formattedAddress: opt.formattedAddress,
-      walkScore: opt.walkScore,
-      driveScore: opt.driveScore,
-      amenities: (opt.amenities ?? []).map((a) => ({
-        category: a.category,
-        name: a.name,
-        latitude: a.latitude,
-        longitude: a.longitude,
-        distanceMeters: a.distanceMeters,
-        rating: a.rating,
-        address: a.address,
-      })),
-    }));
+  // Build location data for PDF — include ALL options (even un-geocoded)
+  const locationData = deal.options.map((opt) => ({
+    optionName: opt.optionName,
+    propertyAddress: opt.propertyAddress,
+    formattedAddress: opt.formattedAddress,
+    walkScore: opt.walkScore,
+    driveScore: opt.driveScore,
+    amenities: (opt.amenities ?? []).map((a) => ({
+      category: a.category,
+      name: a.name,
+      latitude: a.latitude,
+      longitude: a.longitude,
+      distanceMeters: a.distanceMeters,
+      rating: a.rating,
+      address: a.address,
+    })),
+  }));
 
   // Mark deal as exported
   await prisma.deal.update({

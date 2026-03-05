@@ -59,6 +59,7 @@ model Deal {
   client    Client?      @relation(fields: [clientId], references: [id])
   options   LeaseOption[]
   aiSummary AISummary?
+  memos     MemoArtifact[]
 
   @@index([userId])
   @@index([clientId])
@@ -254,6 +255,30 @@ model Client {
   @@index([userId])
   @@index([token])
   @@map("clients")
+}
+
+// ─── Memo Artifact (DOCX Generation Records) ───────────────────
+
+model MemoArtifact {
+  id              String   @id @default(cuid())
+  dealId          String   @map("deal_id")
+  userId          String   @map("user_id")
+  memoType        String   @map("memo_type")         // IC_DECISION_MEMO, MARKET_BRIEF, etc.
+  audience        String                               // CEO, CFO, COO, IC
+  tone            String                               // BANK_STYLE, CONCISE, NARRATIVE
+  includeSections String[] @map("include_sections")   // array of section IDs
+  inputSnapshot   Json     @map("input_snapshot")     // frozen deal + options at generation time
+  sections        Json?                                // generated sections output
+  promptVersion   String   @map("prompt_version")     // version tag for reproducibility
+  modelVersion    String?  @map("model_version")      // AI model used
+  errorMessage    String?  @map("error_message")
+  generatedAt     DateTime @default(now()) @map("generated_at")
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@index([userId])
+  @@map("memo_artifacts")
 }
 
 // ─── AI Summary ─────────────────────────────────────────────────

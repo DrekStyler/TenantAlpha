@@ -90,4 +90,6 @@ export const RATE_LIMITS = {
   upload: { maxRequests: 5, windowMs: 60_000 },
   /** Location/geocoding: 20 per minute per user (calls Google API) */
   location: { maxRequests: 20, windowMs: 60_000 },
+  /** Memo (Word doc) generation: 3 per minute per user (calls AI + DOCX) */
+  memo: { maxRequests: 3, windowMs: 60_000 },
 } as const;

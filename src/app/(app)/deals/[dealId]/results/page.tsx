@@ -7,6 +7,8 @@ import { ResultsDashboard } from "@/components/results/ResultsDashboard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { usePDFExport } from "@/hooks/usePDFExport";
+import { useMemoExport } from "@/hooks/useMemoExport";
+import { MemoConfigModal } from "@/components/memos/MemoConfigModal";
 
 interface Deal {
   id: string;
@@ -25,10 +27,18 @@ export default function ResultsPage({
   const [deal, setDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
-  const { exportPDF, exporting, error } = usePDFExport({
+  const { exportPDF, exporting, error: pdfError } = usePDFExport({
     dealId,
     calculationResults: results ?? { options: [], rankedByEffectiveRent: [], rankedByNPV: [], bestValueOption: "", bestValueReasons: [] },
   });
+  const {
+    openModal: openMemoModal,
+    closeModal: closeMemoModal,
+    generateMemo,
+    showModal: showMemoModal,
+    exporting: memoExporting,
+    error: memoError,
+  } = useMemoExport({ dealId });
 
   useEffect(() => {
     // Try sessionStorage first
@@ -112,19 +122,37 @@ export default function ResultsPage({
             Recalculate
           </Button>
           {results && (
-            <Button onClick={exportPDF} loading={exporting}>
-              Export PDF ↓
-            </Button>
+            <>
+              <Button onClick={exportPDF} loading={exporting}>
+                Export PDF ↓
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={openMemoModal}
+                loading={memoExporting}
+              >
+                Word Memo ↓
+              </Button>
+            </>
           )}
         </div>
       </div>
 
-      {/* PDF export error */}
-      {error && (
+      {/* Export errors */}
+      {(pdfError || memoError) && (
         <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+          {pdfError || memoError}
         </div>
       )}
+
+      {/* Memo config modal */}
+      <MemoConfigModal
+        open={showMemoModal}
+        onClose={closeMemoModal}
+        onGenerate={generateMemo}
+        loading={memoExporting}
+        error={memoError}
+      />
 
       {/* Results or empty state */}
       {results ? (

@@ -87,16 +87,21 @@ function fmtSF(n: number) {
 }
 
 interface PDFDocumentProps {
-  deal: { dealName: string; clientName?: string | null };
+  deal: { dealName: string; clientName?: string | null; propertyType?: string | null };
   options: Array<{
     optionName: string;
     rentableSF: number;
     termMonths: number;
     baseRentY1: number;
     rentStructure: string;
+    escalationType?: string | null;
+    escalationPercent?: number | null;
     freeRentMonths: number;
     tiAllowance?: number | null;
     estimatedBuildoutCost?: number | null;
+    opExPerSF?: number | null;
+    parkingCostMonthly?: number | null;
+    discountRate?: number | null;
   }>;
   calculationResults: ComparisonResult;
   aiSummary?: string;
@@ -118,10 +123,12 @@ interface PDFDocumentProps {
   }> | null;
 }
 
-function PageFooter({ dealName }: { dealName: string }) {
+function PageFooter({ dealName, clientName }: { dealName: string; clientName?: string | null }) {
   return (
     <View style={s.pageFooter} fixed>
-      <Text style={s.pageFooterText}>TenantAlpha — Lease Options Analysis: {dealName}</Text>
+      <Text style={s.pageFooterText}>
+        TenantAlpha{clientName ? ` — ${clientName}` : ""} — {dealName}
+      </Text>
       <Text style={[s.pageFooterText, { color: colors.gold }]}>CONFIDENTIAL</Text>
     </View>
   );
@@ -138,6 +145,17 @@ export function PDFDocument({
 }: PDFDocumentProps) {
   const { bestValueOption, bestValueReasons, rankedByNPV, rankedByEffectiveRent } = calculationResults;
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  // Discount rate from first option (all should be the same)
+  const discountRate = options[0]?.discountRate ?? null;
+
+  // NPV differential: best option vs. next-best
+  const sortedByNPV = [...calculationResults.options].sort((a, b) => a.npvOfCosts - b.npvOfCosts);
+  const npvDifferential = sortedByNPV.length >= 2 ? sortedByNPV[1].npvOfCosts - sortedByNPV[0].npvOfCosts : null;
+
+  // Check if any option has employee or revenue data
+  const hasEmployeeData = calculationResults.options.some((o) => o.costPerEmployeePerYear != null);
+  const hasRevenueData = calculationResults.options.some((o) => o.rentAsPercentOfRevenue != null);
 
   return (
     <Document
@@ -174,6 +192,37 @@ export function PDFDocument({
           <Text style={s.pageHeaderSub}>{deal.dealName}</Text>
         </View>
 
+        {/* Deal Parameters */}
+        <View style={{ flexDirection: "row", marginBottom: 14, gap: 12 }}>
+          <View style={{ backgroundColor: colors.navyBg, borderRadius: 4, padding: 8, flex: 1 }}>
+            <Text style={{ fontSize: 8, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Options Analyzed</Text>
+            <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>{options.length}</Text>
+          </View>
+          {deal.propertyType && (
+            <View style={{ backgroundColor: colors.navyBg, borderRadius: 4, padding: 8, flex: 1 }}>
+              <Text style={{ fontSize: 8, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Property Type</Text>
+              <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>{deal.propertyType}</Text>
+            </View>
+          )}
+          <View style={{ backgroundColor: colors.navyBg, borderRadius: 4, padding: 8, flex: 1 }}>
+            <Text style={{ fontSize: 8, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Term Range</Text>
+            <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>
+              {(() => {
+                const terms = options.map((o) => o.termMonths / 12);
+                const min = Math.min(...terms);
+                const max = Math.max(...terms);
+                return min === max ? `${min.toFixed(0)} yrs` : `${min.toFixed(0)}–${max.toFixed(0)} yrs`;
+              })()}
+            </Text>
+          </View>
+          {discountRate != null && (
+            <View style={{ backgroundColor: colors.navyBg, borderRadius: 4, padding: 8, flex: 1 }}>
+              <Text style={{ fontSize: 8, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Discount Rate</Text>
+              <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>{discountRate.toFixed(1)}%</Text>
+            </View>
+          )}
+        </View>
+
         {/* Best Value Banner */}
         <View style={s.banner}>
           <Text style={s.bannerLabel}>Recommendation</Text>
@@ -184,6 +233,14 @@ export function PDFDocument({
               <Text style={{ fontSize: 10, color: "#c8d8e8", flex: 1 }}>{r}</Text>
             </View>
           ))}
+          {/* NPV differential vs next-best option */}
+          {npvDifferential != null && (
+            <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: "#334e68", paddingTop: 6 }}>
+              <Text style={{ fontSize: 9, color: colors.gold, fontWeight: 600 }}>
+                NPV Savings: {fmt(npvDifferential)} vs. next-best option
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Rankings */}
@@ -205,7 +262,7 @@ export function PDFDocument({
           </View>
         )}
 
-        <PageFooter dealName={deal.dealName} />
+        <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
       </Page>
 
       {/* ── OPTIONS OVERVIEW ── */}
@@ -217,30 +274,44 @@ export function PDFDocument({
 
         <View style={s.table}>
           <View style={s.tableHeaderRow}>
-            <Text style={[s.tableHeaderCell, { flex: 1.8 }]}>Option</Text>
-            <Text style={s.tableHeaderCell}>Size (SF)</Text>
-            <Text style={s.tableHeaderCell}>Term</Text>
-            <Text style={s.tableHeaderCell}>Base Rent Y1</Text>
-            <Text style={s.tableHeaderCell}>Structure</Text>
-            <Text style={s.tableHeaderCell}>Free Rent</Text>
-            <Text style={s.tableHeaderCell}>TI Allowance</Text>
+            <Text style={[s.tableHeaderCell, { flex: 1.6 }]}>Option</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.8 }]}>Size (SF)</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.6 }]}>Term</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.9 }]}>Base Rent Y1</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.9 }]}>Escalation</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.7 }]}>Structure</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.7 }]}>OpEx/SF</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.6 }]}>Free Rent</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.8 }]}>TI Allow.</Text>
+            <Text style={[s.tableHeaderCell, { flex: 0.7 }]}>Parking</Text>
           </View>
           {options.map((opt, i) => (
             <View key={i} style={i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
-              <Text style={[s.tableCellBold, { flex: 1.8 }]}>{opt.optionName}</Text>
-              <Text style={s.tableCellRight}>{opt.rentableSF.toLocaleString()}</Text>
-              <Text style={s.tableCellRight}>{(opt.termMonths / 12).toFixed(0)} yrs</Text>
-              <Text style={s.tableCellRight}>{fmtSF(opt.baseRentY1)}</Text>
-              <Text style={s.tableCell}>{opt.rentStructure}</Text>
-              <Text style={s.tableCellRight}>{opt.freeRentMonths} mo</Text>
-              <Text style={s.tableCellRight}>
+              <Text style={[s.tableCellBold, { flex: 1.6, fontSize: 8 }]}>{opt.optionName}</Text>
+              <Text style={[s.tableCellRight, { flex: 0.8, fontSize: 8 }]}>{opt.rentableSF.toLocaleString()}</Text>
+              <Text style={[s.tableCellRight, { flex: 0.6, fontSize: 8 }]}>{(opt.termMonths / 12).toFixed(0)} yr</Text>
+              <Text style={[s.tableCellRight, { flex: 0.9, fontSize: 8 }]}>{fmtSF(opt.baseRentY1)}</Text>
+              <Text style={[s.tableCell, { flex: 0.9, fontSize: 8 }]}>
+                {opt.escalationType === "CPI"
+                  ? `CPI ${opt.escalationPercent?.toFixed(1) ?? "—"}%`
+                  : `${opt.escalationPercent?.toFixed(1) ?? "—"}% Fixed`}
+              </Text>
+              <Text style={[s.tableCell, { flex: 0.7, fontSize: 8 }]}>{opt.rentStructure}</Text>
+              <Text style={[s.tableCellRight, { flex: 0.7, fontSize: 8 }]}>
+                {opt.opExPerSF ? fmtSF(opt.opExPerSF) : "—"}
+              </Text>
+              <Text style={[s.tableCellRight, { flex: 0.6, fontSize: 8 }]}>{opt.freeRentMonths} mo</Text>
+              <Text style={[s.tableCellRight, { flex: 0.8, fontSize: 8 }]}>
                 {opt.tiAllowance ? fmt(opt.tiAllowance) : "—"}
+              </Text>
+              <Text style={[s.tableCellRight, { flex: 0.7, fontSize: 8 }]}>
+                {opt.parkingCostMonthly ? `${fmt(opt.parkingCostMonthly)}/mo` : "—"}
               </Text>
             </View>
           ))}
         </View>
 
-        <PageFooter dealName={deal.dealName} />
+        <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
       </Page>
 
       {/* ── ROI METRICS TABLE ── */}
@@ -252,35 +323,58 @@ export function PDFDocument({
 
         <View style={s.table}>
           <View style={s.tableHeaderRow}>
-            <Text style={[s.tableHeaderCell, { flex: 1.8 }]}>Option</Text>
+            <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Option</Text>
             <Text style={s.tableHeaderCell}>Total Cost</Text>
-            <Text style={s.tableHeaderCell}>NPV</Text>
+            <Text style={s.tableHeaderCell}>NPV*</Text>
             <Text style={s.tableHeaderCell}>Eff. Rent/SF</Text>
+            <Text style={s.tableHeaderCell}>Eff. w/ TI</Text>
             <Text style={s.tableHeaderCell}>Free Rent</Text>
             <Text style={s.tableHeaderCell}>TI Gap</Text>
+            {hasEmployeeData && <Text style={s.tableHeaderCell}>Cost/Emp</Text>}
+            {hasRevenueData && <Text style={s.tableHeaderCell}>% Rev</Text>}
           </View>
           {calculationResults.options.map((opt, i) => {
             const isBest = opt.optionName === bestValueOption;
             return (
               <View key={i} style={isBest ? { ...s.tableRow, backgroundColor: "#e6f0f8" } : i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
-                <Text style={[isBest ? s.tableCellBold : s.tableCell, { flex: 1.8 }]}>
+                <Text style={[isBest ? s.tableCellBold : s.tableCell, { flex: 1.5, fontSize: 8 }]}>
                   {opt.optionName}{isBest ? " ★" : ""}
                 </Text>
-                <Text style={s.tableCellRight}>{fmt(opt.totalOccupancyCost)}</Text>
-                <Text style={s.tableCellRight}>{fmt(opt.npvOfCosts)}</Text>
-                <Text style={s.tableCellRight}>{fmtSF(opt.effectiveRentPerSF)}</Text>
-                <Text style={s.tableCellRight}>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmt(opt.totalOccupancyCost)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmt(opt.npvOfCosts)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmtSF(opt.effectiveRentPerSF)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>{fmtSF(opt.effectiveRentPerSFWithTI)}</Text>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>
                   {opt.totalFreeRentSavings > 0 ? fmt(opt.totalFreeRentSavings) : "—"}
                 </Text>
-                <Text style={s.tableCellRight}>
+                <Text style={[s.tableCellRight, { fontSize: 8 }]}>
                   {opt.tiGap > 0 ? fmt(opt.tiGap) : "—"}
                 </Text>
+                {hasEmployeeData && (
+                  <Text style={[s.tableCellRight, { fontSize: 8 }]}>
+                    {opt.costPerEmployeePerYear != null ? fmt(opt.costPerEmployeePerYear) : "—"}
+                  </Text>
+                )}
+                {hasRevenueData && (
+                  <Text style={[s.tableCellRight, { fontSize: 8 }]}>
+                    {opt.rentAsPercentOfRevenue != null ? `${opt.rentAsPercentOfRevenue.toFixed(1)}%` : "—"}
+                  </Text>
+                )}
               </View>
             );
           })}
         </View>
 
-        <PageFooter dealName={deal.dealName} />
+        {/* Discount rate footnote */}
+        {discountRate != null && (
+          <View style={{ marginTop: 6 }}>
+            <Text style={{ fontSize: 8, color: colors.muted, fontStyle: "italic" }}>
+              * NPV discounted at {discountRate.toFixed(1)}% using monthly compounding
+            </Text>
+          </View>
+        )}
+
+        <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
       </Page>
 
       {/* ── CASH FLOW TABLES ── */}
@@ -324,7 +418,7 @@ export function PDFDocument({
             </View>
           </View>
 
-          <PageFooter dealName={deal.dealName} />
+          <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
         </Page>
       ))}
 
@@ -345,7 +439,7 @@ export function PDFDocument({
             </View>
           ))}
 
-          <PageFooter dealName={deal.dealName} />
+          <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
         </Page>
       )}
 
@@ -446,7 +540,7 @@ export function PDFDocument({
             </Text>
           </View>
 
-          <PageFooter dealName={deal.dealName} />
+          <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
         </Page>
       )}
 
@@ -477,7 +571,7 @@ export function PDFDocument({
           </Text>
         </View>
 
-        <PageFooter dealName={deal.dealName} />
+        <PageFooter dealName={deal.dealName} clientName={deal.clientName} />
       </Page>
     </Document>
   );

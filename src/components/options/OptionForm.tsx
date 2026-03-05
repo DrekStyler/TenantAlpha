@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { LocationPreview } from "@/components/location/LocationPreview";
+import { AddressAutocomplete } from "@/components/location/AddressAutocomplete";
 import {
   RENT_STRUCTURES,
   ESCALATION_TYPES,
@@ -45,6 +46,7 @@ export function OptionForm({
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<LeaseOptionFormData>({
     resolver: zodResolver(leaseOptionSchema),
@@ -129,10 +131,13 @@ export function OptionForm({
             error={errors.optionName?.message}
             {...register("optionName")}
           />
-          <Input
-            label="Property Address"
-            placeholder="123 Main St, Suite 400"
-            {...register("propertyAddress")}
+          <AddressAutocomplete
+            value={watch("propertyAddress") ?? ""}
+            onChange={(v) => setValue("propertyAddress", v)}
+            onSelect={(address) => {
+              setValue("propertyAddress", address);
+            }}
+            error={errors.propertyAddress?.message}
           />
         </div>
 

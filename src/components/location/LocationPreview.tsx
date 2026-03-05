@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useOptionLocation } from "@/hooks/useLocationData";
 import { ScoreBadge } from "./ScoreBadge";
 import { AmenityList } from "./AmenityList";
@@ -21,6 +22,22 @@ export function LocationPreview({
     dealId,
     optionId
   );
+
+  // Track the previous address to detect autocomplete selections
+  const prevAddressRef = useRef(address);
+
+  // Auto-fetch when address changes (user selected from autocomplete)
+  useEffect(() => {
+    if (
+      address &&
+      optionId &&
+      address !== prevAddressRef.current &&
+      !loading
+    ) {
+      prevAddressRef.current = address;
+      fetchLocation();
+    }
+  }, [address, optionId, loading, fetchLocation]);
 
   if (!optionId || !address) return null;
 

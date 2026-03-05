@@ -69,11 +69,11 @@ function generateReasons(
       .findIndex((o) => o.optionName === best.optionName) + 1;
   if (rentRank === 1) {
     reasons.push(
-      `Lowest effective rent at $${best.effectiveRentPerSF.toFixed(2)}/SF/year.`
+      `Lowest effective rent at $${(best.effectiveRentPerSF ?? 0).toFixed(2)}/SF/year.`
     );
   } else {
     reasons.push(
-      `Effective rent of $${best.effectiveRentPerSF.toFixed(2)}/SF/year (ranked #${rentRank}).`
+      `Effective rent of $${(best.effectiveRentPerSF ?? 0).toFixed(2)}/SF/year (ranked #${rentRank}).`
     );
   }
 

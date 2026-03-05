@@ -244,10 +244,10 @@ export default function LeasesPage() {
                   )}
                   <div className="mt-2 flex flex-wrap gap-4 text-sm text-navy-600">
                     <span>
-                      <span className="font-medium">${lease.baseRentY1.toFixed(2)}/SF/yr</span>
+                      <span className="font-medium">${(lease.baseRentY1 ?? 0).toFixed(2)}/SF/yr</span>
                     </span>
-                    <span>{lease.rentableSF.toLocaleString()} SF</span>
-                    <span>{(lease.termMonths / 12).toFixed(1)} yrs</span>
+                    <span>{(lease.rentableSF ?? 0).toLocaleString()} SF</span>
+                    <span>{((lease.termMonths ?? 0) / 12).toFixed(1)} yrs</span>
                     {lease.tiAllowance && lease.tiAllowance > 0 && (
                       <span>TI: {formatCurrency(lease.tiAllowance)}</span>
                     )}

@@ -29,13 +29,13 @@ const METRIC_ROWS: MetricRow[] = [
   {
     label: "Effective Rent ($/SF/yr)",
     key: "effectiveRentPerSF",
-    format: (o) => `$${o.effectiveRentPerSF.toFixed(2)}`,
+    format: (o) => `$${(o.effectiveRentPerSF ?? 0).toFixed(2)}`,
     highlight: "low",
   },
   {
     label: "Effective Rent w/ TI ($/SF/yr)",
     key: "effectiveRentPerSFWithTI",
-    format: (o) => `$${o.effectiveRentPerSFWithTI.toFixed(2)}`,
+    format: (o) => `$${(o.effectiveRentPerSFWithTI ?? 0).toFixed(2)}`,
     highlight: "low",
   },
   {
@@ -72,7 +72,7 @@ const METRIC_ROWS: MetricRow[] = [
     key: "rentAsPercentOfRevenue",
     format: (o) =>
       o.rentAsPercentOfRevenue != null
-        ? `${o.rentAsPercentOfRevenue.toFixed(1)}%`
+        ? `${(o.rentAsPercentOfRevenue ?? 0).toFixed(1)}%`
         : "N/A",
     highlight: "low",
   },

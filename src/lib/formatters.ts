@@ -17,7 +17,7 @@ export function formatCurrencyPrecise(value: number): string {
 }
 
 export function formatPercent(value: number): string {
-  return `${value.toFixed(1)}%`;
+  return `${(value ?? 0).toFixed(1)}%`;
 }
 
 export function formatSF(value: number): string {

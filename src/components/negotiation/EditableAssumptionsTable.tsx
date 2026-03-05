@@ -62,7 +62,7 @@ const FIELD_ROWS: FieldRow[] = [
     label: "Base Rent ($/SF/yr)",
     field: "baseRentY1",
     type: "currency",
-    format: (v) => `$${Number(v).toFixed(2)}`,
+    format: (v) => `$${(Number(v) || 0).toFixed(2)}`,
     group: "Rent",
   },
   {

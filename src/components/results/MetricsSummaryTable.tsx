@@ -116,7 +116,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                   </td>
                   <td className="px-4 py-3.5 text-right">
                     <span className="tabular-nums text-navy-700">
-                      ${opt.effectiveRentPerSF.toFixed(2)}
+                      ${(opt.effectiveRentPerSF ?? 0).toFixed(2)}
                     </span>
                     <RankBadge rank={rentRank} />
                   </td>
@@ -177,7 +177,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
               const isBest = opt.optionName === bestValueOption;
               // Rank by net effective rent
               const nerRanked = [...options]
-                .sort((a, b) => a.netEffectiveRentPerSF - b.netEffectiveRentPerSF)
+                .sort((a, b) => (a.netEffectiveRentPerSF ?? 0) - (b.netEffectiveRentPerSF ?? 0))
                 .map((o) => o.optionName);
               const nerRank = nerRanked.indexOf(opt.optionName) + 1;
 
@@ -201,7 +201,7 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                   </td>
                   <td className="px-4 py-3.5 text-right">
                     <span className="tabular-nums text-navy-700">
-                      ${opt.netEffectiveRentPerSF.toFixed(2)}
+                      ${(opt.netEffectiveRentPerSF ?? 0).toFixed(2)}
                     </span>
                     <RankBadge rank={nerRank} />
                   </td>
@@ -209,12 +209,12 @@ export function MetricsSummaryTable({ results }: MetricsSummaryTableProps) {
                     {formatCurrency(opt.straightLineMonthlyRent)}/mo
                   </td>
                   <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
-                    ${opt.tiAllowancePerRSF.toFixed(2)}
+                    ${(opt.tiAllowancePerRSF ?? 0).toFixed(2)}
                   </td>
                   <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
                     {opt.effectiveRentPerUSF != null
-                      ? `$${opt.effectiveRentPerUSF.toFixed(2)}`
-                      : "—"}
+                      ? `$${(opt.effectiveRentPerUSF ?? 0).toFixed(2)}`
+                      : "\u2014"}
                   </td>
                   <td className="px-4 py-3.5 text-right tabular-nums text-navy-700">
                     {opt.pvOfConcessions > 0

@@ -70,12 +70,12 @@ export function buildDealContext(
       (opt) => `
 ### ${opt.optionName}
 - Size: ${opt.rentableSF.toLocaleString()} SF
-- Term: ${opt.termMonths} months (${(opt.termMonths / 12).toFixed(1)} years)
-- Base Rent Y1: $${opt.baseRentY1.toFixed(2)}/SF/year
+- Term: ${opt.termMonths} months (${((opt.termMonths ?? 0) / 12).toFixed(1)} years)
+- Base Rent Y1: $${(opt.baseRentY1 ?? 0).toFixed(2)}/SF/year
 - Escalation: ${opt.escalationType === "FIXED_PERCENT" ? `${opt.escalationPercent}% fixed` : `CPI (assumed ${opt.escalationPercent}%)`}
 - Free Rent: ${opt.freeRentMonths} months (${opt.freeRentType.toLowerCase()})
 - Rent Structure: ${opt.rentStructure}
-${opt.opExPerSF ? `- OpEx: $${opt.opExPerSF.toFixed(2)}/SF/year` : ""}
+${opt.opExPerSF ? `- OpEx: $${(opt.opExPerSF ?? 0).toFixed(2)}/SF/year` : ""}
 ${opt.tiAllowance != null ? `- TI Allowance: $${opt.tiAllowance.toLocaleString()}` : ""}
 ${opt.estimatedBuildoutCost != null ? `- Est. Buildout: $${opt.estimatedBuildoutCost.toLocaleString()}` : ""}
 ${opt.parkingCostMonthly ? `- Parking: $${opt.parkingCostMonthly.toLocaleString()}/month` : ""}
@@ -93,13 +93,13 @@ ${calculationResults.options
   .map(
     (m) => `### ${m.optionName}
 - Total Occupancy Cost: $${m.totalOccupancyCost.toLocaleString()}
-- Effective Rent: $${m.effectiveRentPerSF.toFixed(2)}/SF
-- Effective Rent (with TI): $${m.effectiveRentPerSFWithTI.toFixed(2)}/SF
+- Effective Rent: $${(m.effectiveRentPerSF ?? 0).toFixed(2)}/SF
+- Effective Rent (with TI): $${(m.effectiveRentPerSFWithTI ?? 0).toFixed(2)}/SF
 - NPV of Costs: $${m.npvOfCosts.toLocaleString()}
 - TI Gap (Out-of-Pocket): $${m.tiGap.toLocaleString()}
 ${m.paybackPeriodMonths != null ? `- Payback Period: ${m.paybackPeriodMonths} months` : ""}
 ${m.costPerEmployeePerYear != null ? `- Cost/Employee/Year: $${m.costPerEmployeePerYear.toLocaleString()}` : ""}
-${m.rentAsPercentOfRevenue != null ? `- Rent as % of Revenue: ${m.rentAsPercentOfRevenue.toFixed(1)}%` : ""}
+${m.rentAsPercentOfRevenue != null ? `- Rent as % of Revenue: ${(m.rentAsPercentOfRevenue ?? 0).toFixed(1)}%` : ""}
 - Free Rent Savings: $${m.totalFreeRentSavings.toLocaleString()}`
   )
   .join("\n")}

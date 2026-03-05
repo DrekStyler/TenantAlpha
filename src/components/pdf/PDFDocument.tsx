@@ -83,7 +83,7 @@ function fmt(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 }
 function fmtSF(n: number) {
-  return `$${n.toFixed(2)}/SF`;
+  return `$${(n ?? 0).toFixed(2)}/SF`;
 }
 
 interface PDFDocumentProps {
@@ -211,14 +211,14 @@ export function PDFDocument({
                 const terms = options.map((o) => o.termMonths / 12);
                 const min = Math.min(...terms);
                 const max = Math.max(...terms);
-                return min === max ? `${min.toFixed(0)} yrs` : `${min.toFixed(0)}–${max.toFixed(0)} yrs`;
+                return min === max ? `${(min ?? 0).toFixed(0)} yrs` : `${(min ?? 0).toFixed(0)}\u2013${(max ?? 0).toFixed(0)} yrs`;
               })()}
             </Text>
           </View>
           {discountRate != null && (
             <View style={{ backgroundColor: colors.navyBg, borderRadius: 4, padding: 8, flex: 1 }}>
               <Text style={{ fontSize: 8, color: colors.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Discount Rate</Text>
-              <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>{discountRate.toFixed(1)}%</Text>
+              <Text style={{ fontSize: 14, fontWeight: 700, color: colors.navy }}>{(discountRate ?? 0).toFixed(1)}%</Text>
             </View>
           )}
         </View>
@@ -289,7 +289,7 @@ export function PDFDocument({
             <View key={i} style={i % 2 === 0 ? s.tableRow : s.tableRowAlt}>
               <Text style={[s.tableCellBold, { flex: 1.6, fontSize: 8 }]}>{opt.optionName}</Text>
               <Text style={[s.tableCellRight, { flex: 0.8, fontSize: 8 }]}>{opt.rentableSF.toLocaleString()}</Text>
-              <Text style={[s.tableCellRight, { flex: 0.6, fontSize: 8 }]}>{(opt.termMonths / 12).toFixed(0)} yr</Text>
+              <Text style={[s.tableCellRight, { flex: 0.6, fontSize: 8 }]}>{((opt.termMonths ?? 0) / 12).toFixed(0)} yr</Text>
               <Text style={[s.tableCellRight, { flex: 0.9, fontSize: 8 }]}>{fmtSF(opt.baseRentY1)}</Text>
               <Text style={[s.tableCell, { flex: 0.9, fontSize: 8 }]}>
                 {opt.escalationType === "CPI"
@@ -357,7 +357,7 @@ export function PDFDocument({
                 )}
                 {hasRevenueData && (
                   <Text style={[s.tableCellRight, { fontSize: 8 }]}>
-                    {opt.rentAsPercentOfRevenue != null ? `${opt.rentAsPercentOfRevenue.toFixed(1)}%` : "—"}
+                    {opt.rentAsPercentOfRevenue != null ? `${(opt.rentAsPercentOfRevenue ?? 0).toFixed(1)}%` : "\u2014"}
                   </Text>
                 )}
               </View>
@@ -369,7 +369,7 @@ export function PDFDocument({
         {discountRate != null && (
           <View style={{ marginTop: 6 }}>
             <Text style={{ fontSize: 8, color: colors.muted, fontStyle: "italic" }}>
-              * NPV discounted at {discountRate.toFixed(1)}% using monthly compounding
+              * NPV discounted at {(discountRate ?? 0).toFixed(1)}% using monthly compounding
             </Text>
           </View>
         )}

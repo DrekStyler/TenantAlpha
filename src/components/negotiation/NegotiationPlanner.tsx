@@ -26,7 +26,7 @@ function formatTargetForField(field: string, value: number): string {
   if (field.includes("Percent") || field === "discountRate" || field === "opExEscalation")
     return formatPercent(value);
   if (field === "baseRentY1" || field === "opExPerSF" || field === "propertyTax")
-    return `$${value.toFixed(2)}`;
+    return `$${(value ?? 0).toFixed(2)}`;
   if (field === "parkingCostMonthly" || field === "otherMonthlyFees")
     return formatCurrency(value);
   if (field === "tiAllowance" || field === "estimatedBuildoutCost")

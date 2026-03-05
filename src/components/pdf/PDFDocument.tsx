@@ -494,42 +494,47 @@ export function PDFDocument({
 
           {/* Amenity Counts by Category */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Nearby Amenities Comparison</Text>
+            <Text style={s.sectionTitle}>Nearby Amenities</Text>
             <View style={s.table}>
               <View style={s.tableHeaderRow}>
-                <Text style={[s.tableHeaderCell, { flex: 1.5 }]}>Category</Text>
+                <Text style={[s.tableHeaderCell, { flex: 2 }]}>Category</Text>
                 {locationData.map((loc, i) => (
-                  <Text key={i} style={[s.tableHeaderCell, { textAlign: "center" }]}>
+                  <Text key={i} style={[s.tableHeaderCell, { flex: 1, textAlign: "center" }]}>
                     {loc.optionName}
                   </Text>
                 ))}
               </View>
-              {AMENITY_CATEGORIES.map((cat) => {
-                const counts = locationData.map(
-                  (loc) => loc.amenities.filter((a) => a.category === cat.key).length
-                );
-                const maxCount = Math.max(...counts);
-                if (maxCount === 0) return null;
-                return (
-                  <View key={cat.key} style={s.tableRow}>
-                    <Text style={[s.tableCell, { flex: 1.5 }]}>
-                      {cat.label}
-                    </Text>
-                    {counts.map((count, i) => (
-                      <Text
-                        key={i}
-                        style={[s.tableCellRight, {
-                          textAlign: "center",
-                          fontWeight: count === maxCount && count > 0 ? 600 : 400,
-                          color: count === maxCount && count > 0 ? "#2d6a4f" : colors.text,
-                        }]}
-                      >
-                        {count}
+              {(() => {
+                let rowIdx = 0;
+                return AMENITY_CATEGORIES.map((cat) => {
+                  const counts = locationData.map(
+                    (loc) => loc.amenities.filter((a) => a.category === cat.key).length
+                  );
+                  const maxCount = Math.max(...counts);
+                  if (maxCount === 0) return null;
+                  const currentRow = rowIdx++;
+                  return (
+                    <View key={cat.key} style={currentRow % 2 === 0 ? s.tableRow : s.tableRowAlt}>
+                      <Text style={[s.tableCellBold, { flex: 2 }]}>
+                        {cat.label}
                       </Text>
-                    ))}
-                  </View>
-                );
-              })}
+                      {counts.map((count, i) => (
+                        <Text
+                          key={i}
+                          style={[s.tableCell, {
+                            flex: 1,
+                            textAlign: "center",
+                            fontWeight: count === maxCount && count > 0 ? 600 : 400,
+                            color: count === maxCount && count > 0 ? "#2d6a4f" : colors.text,
+                          }]}
+                        >
+                          {count}
+                        </Text>
+                      ))}
+                    </View>
+                  );
+                });
+              })()}
             </View>
           </View>
 

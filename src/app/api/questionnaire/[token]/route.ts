@@ -23,6 +23,7 @@ export async function GET(
     select: {
       name: true,
       company: true,
+      industry: true,
       questionnaireCompletedAt: true,
       tokenExpiresAt: true,
       user: {
@@ -40,6 +41,7 @@ export async function GET(
   return ok({
     clientName: client.name,
     company: client.company,
+    industry: client.industry,
     alreadyCompleted: !!client.questionnaireCompletedAt,
     brokerName: client.user?.name,
     brokerageName: client.user?.brokerageName,

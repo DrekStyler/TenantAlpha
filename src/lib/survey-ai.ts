@@ -130,7 +130,8 @@ After each user message, use the extract_data tool to report any structured data
 export function buildSurveyContext(
   phase: SurveyPhase,
   extractedData: ExtractedSurveyData,
-  clientName: string
+  clientName: string,
+  brokerSetIndustry?: string | null
 ): string {
   const parts: string[] = [];
 
@@ -138,7 +139,10 @@ export function buildSurveyContext(
   parts.push(`- Client name: ${clientName}`);
   parts.push(`- Current phase: ${phase}`);
 
-  if (extractedData.industry) {
+  if (brokerSetIndustry) {
+    parts.push(`- Broker-confirmed industry: ${brokerSetIndustry} (mapped to ${extractedData.industry})`);
+    parts.push(`- NOTE: The broker has already identified this client's industry. Do NOT re-ask about their industry. Jump straight into industry-specific questions.`);
+  } else if (extractedData.industry) {
     parts.push(`- Detected industry: ${extractedData.industry}`);
   }
 

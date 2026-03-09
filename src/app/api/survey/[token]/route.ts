@@ -8,6 +8,7 @@ import {
   SURVEY_AGENT_SYSTEM_PROMPT,
   buildSurveyContext,
 } from "@/lib/survey-ai";
+import { mapToEngineIndustry } from "@/lib/industry-config";
 import type { SurveyMessage, ExtractedSurveyData, SurveyPhase } from "@/types/survey";
 
 function isTokenExpired(expiresAt: Date | null): boolean {
@@ -31,6 +32,7 @@ export async function GET(
       id: true,
       name: true,
       company: true,
+      industry: true,
       surveyMode: true,
       tokenExpiresAt: true,
       questionnaireCompletedAt: true,
@@ -55,6 +57,7 @@ export async function GET(
   return ok({
     clientName: client.name,
     company: client.company,
+    industry: client.industry,
     surveyMode: client.surveyMode,
     brokerName: client.user?.name,
     brokerageName: client.user?.brokerageName,
@@ -102,13 +105,18 @@ export async function POST(
   // Get or create session
   let session = client.surveySession;
   if (!session) {
+    // If broker already set the industry, pre-populate and skip detection
+    const engineIndustry = mapToEngineIndustry(client.industry);
+    const initialPhase = engineIndustry ? "INDUSTRY_QUESTIONS" : "INDUSTRY_DETECTION";
+    const initialData = engineIndustry ? { industry: engineIndustry } : {};
+
     session = await prisma.surveySession.create({
       data: {
         clientId: client.id,
         token: client.token,
-        phase: "INDUSTRY_DETECTION",
+        phase: initialPhase,
         messages: [],
-        extractedData: {},
+        extractedData: initialData,
       },
     });
   }
@@ -132,7 +140,7 @@ export async function POST(
   const updatedMessages = [...existingMessages, userMsg];
 
   // Build context for Claude
-  const surveyContext = buildSurveyContext(phase, extractedData, client.name);
+  const surveyContext = buildSurveyContext(phase, extractedData, client.name, client.industry);
 
   const systemPrompt = `${SURVEY_AGENT_SYSTEM_PROMPT}
 

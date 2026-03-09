@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { SurveyChat } from "@/components/survey/SurveyChat";
+import { getIndustryConfig } from "@/lib/industry-config";
 import type { SurveyMessage, SurveyPhase, ExtractedSurveyData } from "@/types/survey";
 
 interface ClientInfo {
   clientName: string;
   company?: string;
+  industry?: string;
   alreadyCompleted: boolean;
   brokerName?: string;
   brokerageName?: string;
@@ -28,28 +30,6 @@ const timelineOptions = [
   { value: "12_MONTHS", label: "Within 12 months" },
   { value: "24_MONTHS", label: "Within 24 months" },
   { value: "36_PLUS_MONTHS", label: "3+ years out" },
-];
-
-const goalOptions = [
-  { value: "", label: "Select primary goal..." },
-  { value: "MINIMIZE_COST", label: "Minimize occupancy costs" },
-  { value: "MAXIMIZE_GROWTH", label: "Maximize revenue growth potential" },
-  { value: "ATTRACT_TALENT", label: "Attract and retain talent" },
-  { value: "IMPROVE_LOCATION", label: "Improve location / accessibility" },
-  { value: "EXPAND_CAPACITY", label: "Expand operational capacity" },
-];
-
-const amenityChoices = [
-  "Parking",
-  "Conference rooms",
-  "Private offices",
-  "Open floor plan",
-  "Kitchen / break room",
-  "Building security",
-  "Fitness center",
-  "Outdoor space",
-  "Public transit access",
-  "Signage / visibility",
 ];
 
 export default function QuestionnairePage() {
@@ -72,6 +52,12 @@ export default function QuestionnairePage() {
   const [expansionTimeline, setExpansionTimeline] = useState("");
   const [budgetConstraint, setBudgetConstraint] = useState("");
   const [primaryGoal, setPrimaryGoal] = useState("");
+
+  // Get industry-specific configuration
+  const config = useMemo(
+    () => getIndustryConfig(clientInfo?.industry),
+    [clientInfo?.industry]
+  );
 
   useEffect(() => {
     async function load() {
@@ -254,26 +240,26 @@ export default function QuestionnairePage() {
           {/* Section 1: Headcount */}
           <fieldset>
             <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy-500">
-              1. Team Size
+              {config.teamSectionTitle}
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="Current headcount"
+                label={config.headcountLabel}
                 type="number"
                 required
                 min={1}
                 value={currentHeadcount}
                 onChange={(e) => setCurrentHeadcount(e.target.value)}
-                hint="How many employees work in your office today?"
+                hint={config.headcountHint}
               />
               <Input
-                label="Projected headcount (12 months)"
+                label={config.projectedLabel}
                 type="number"
                 required
                 min={1}
                 value={projectedHeadcount12mo}
                 onChange={(e) => setProjectedHeadcount12mo(e.target.value)}
-                hint="How many employees do you plan to have in a year?"
+                hint={config.projectedHint}
               />
             </div>
           </fieldset>
@@ -281,24 +267,24 @@ export default function QuestionnairePage() {
           {/* Section 2: Revenue */}
           <fieldset>
             <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy-500">
-              2. Revenue Impact
+              {config.revenueSectionTitle}
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="Current annual revenue"
+                label={config.revenueLabel}
                 type="number"
                 prefix="$"
                 value={currentAnnualRevenue}
                 onChange={(e) => setCurrentAnnualRevenue(e.target.value)}
-                hint="Approximate total annual revenue"
+                hint={config.revenueHint}
               />
               <Input
-                label="Revenue per employee"
+                label={config.revenuePerPersonLabel}
                 type="number"
                 prefix="$"
                 value={revenuePerEmployee}
                 onChange={(e) => setRevenuePerEmployee(e.target.value)}
-                hint="Average revenue generated per employee"
+                hint={config.revenuePerPersonHint}
               />
             </div>
             <div className="mt-4">
@@ -308,7 +294,7 @@ export default function QuestionnairePage() {
                 suffix="%"
                 value={projectedRevenueGrowth}
                 onChange={(e) => setProjectedRevenueGrowth(e.target.value)}
-                hint="What % do you expect revenue to grow year-over-year?"
+                hint={config.growthHint}
               />
             </div>
           </fieldset>
@@ -316,7 +302,7 @@ export default function QuestionnairePage() {
           {/* Section 3: Space Needs */}
           <fieldset>
             <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy-500">
-              3. Space Requirements
+              {config.spaceSectionTitle}
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
@@ -324,7 +310,7 @@ export default function QuestionnairePage() {
                 type="number"
                 value={sfPerEmployee}
                 onChange={(e) => setSfPerEmployee(e.target.value)}
-                hint="Typical: 150-250 SF per person"
+                hint={config.sfHint}
               />
               <Input
                 label="Monthly budget constraint"
@@ -346,7 +332,7 @@ export default function QuestionnairePage() {
               Select all that are important for your business
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {amenityChoices.map((amenity) => (
+              {config.amenities.map((amenity) => (
                 <button
                   key={amenity}
                   type="button"
@@ -377,7 +363,7 @@ export default function QuestionnairePage() {
               />
               <Select
                 label="Primary goal for new space"
-                options={goalOptions}
+                options={config.goals}
                 value={primaryGoal}
                 onChange={(e) => setPrimaryGoal(e.target.value)}
               />

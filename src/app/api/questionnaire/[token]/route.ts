@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { questionnaireSchema } from "@/schemas/client";
 import { ok, notFound, badRequest, err, tooManyRequests } from "@/lib/api";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createDealFromSurvey } from "@/lib/create-deal-from-survey";
+import { mapToEngineIndustry } from "@/lib/industry-config";
 
 function isTokenExpired(expiresAt: Date | null): boolean {
   if (!expiresAt) return false; // legacy tokens without expiry
@@ -79,16 +81,31 @@ export async function POST(
 
   const { criticalAmenities, ...rest } = parsed.data;
 
-  const updated = await prisma.client.update({
-    where: { token },
+  // Map broker-set industry to engine type
+  const engineIndustry = mapToEngineIndustry(client.industry) ?? "GENERAL_OFFICE";
+
+  // Create Deal + ROI via shared helper
+  const result = await createDealFromSurvey({
+    clientId: client.id,
+    clientUserId: client.userId,
+    clientName: client.name,
     data: {
-      ...rest,
-      criticalAmenities: criticalAmenities
-        ? JSON.stringify(criticalAmenities)
-        : null,
-      questionnaireCompletedAt: new Date(),
+      industry: engineIndustry,
+      companyName: client.company ?? undefined,
+      headcount: rest.currentHeadcount,
+      projectedHeadcount12mo: rest.projectedHeadcount12mo,
+      annualRevenue: rest.currentAnnualRevenue,
+      revenuePerEmployee: rest.revenuePerEmployee,
+      projectedRevenueGrowth: rest.projectedRevenueGrowth,
+      sfPerEmployee: rest.sfPerEmployee,
+      budgetConstraint: rest.budgetConstraint,
+      primaryGoal: rest.primaryGoal,
+      criticalAmenities: criticalAmenities ?? undefined,
+      expansionTimeline: rest.expansionTimeline,
     },
+    sourceType: "STATIC",
+    dealNameSuffix: "Space Assessment",
   });
 
-  return ok({ success: true, completedAt: updated.questionnaireCompletedAt });
+  return ok({ success: true, completedAt: new Date().toISOString(), dealId: result.dealId });
 }

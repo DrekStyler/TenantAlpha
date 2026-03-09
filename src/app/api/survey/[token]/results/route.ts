@@ -29,7 +29,7 @@ export async function GET(
       questionnaireCompletedAt: true,
       industry: true,
       deals: {
-        where: { sourceType: "AI_SURVEY" },
+        where: { sourceType: { in: ["AI_SURVEY", "STATIC"] } },
         take: 1,
         orderBy: { createdAt: "desc" },
         include: {

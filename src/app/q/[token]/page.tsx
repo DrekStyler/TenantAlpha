@@ -202,10 +202,11 @@ export default function QuestionnairePage() {
               />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-navy-900">Thank You!</h1>
+          <h1 className="text-xl font-bold text-navy-900">Your ROI Analysis is Ready!</h1>
           <p className="mt-2 text-sm text-navy-500">
-            Your responses have been submitted. Create a free account to view
-            your ROI analysis when it&apos;s ready.
+            Your responses have been submitted and your personalized ROI
+            analysis has been generated. Create a free account to save your
+            results.
           </p>
           <a
             href={`/sign-up?redirect_url=${resultsUrl}`}
@@ -221,6 +222,12 @@ export default function QuestionnairePage() {
               Already have an account? Sign in
             </a>
           </p>
+          <a
+            href={`/q/${token}/results`}
+            className="mt-2 inline-block text-xs text-navy-400 underline hover:text-navy-600"
+          >
+            Skip for now
+          </a>
         </div>
       </div>
     );

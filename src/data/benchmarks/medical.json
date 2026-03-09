@@ -1,0 +1,28 @@
+{
+  "reimbursementRates": {
+    "primary_care": { "medicare": 92, "medicaid": 68, "commercial": 145 },
+    "specialist": { "medicare": 165, "medicaid": 110, "commercial": 250 },
+    "surgical": { "medicare": 280, "medicaid": 195, "commercial": 450 },
+    "dental": { "medicare": 0, "medicaid": 85, "commercial": 175 },
+    "mental_health": { "medicare": 105, "medicaid": 78, "commercial": 160 }
+  },
+  "examRoomBenchmarks": {
+    "primary_care": { "avgSFPerRoom": 120, "visitsPerDay": 22, "utilizationTarget": 85 },
+    "specialist": { "avgSFPerRoom": 140, "visitsPerDay": 16, "utilizationTarget": 80 },
+    "surgical": { "avgSFPerRoom": 250, "visitsPerDay": 8, "utilizationTarget": 75 },
+    "dental": { "avgSFPerRoom": 110, "visitsPerDay": 18, "utilizationTarget": 90 },
+    "mental_health": { "avgSFPerRoom": 130, "visitsPerDay": 10, "utilizationTarget": 70 }
+  },
+  "staffingRatios": {
+    "primary_care": { "supportStaffPerProvider": 3.5, "avgProviderSalary": 250000 },
+    "specialist": { "supportStaffPerProvider": 4.0, "avgProviderSalary": 400000 },
+    "surgical": { "supportStaffPerProvider": 6.0, "avgProviderSalary": 550000 },
+    "dental": { "supportStaffPerProvider": 3.0, "avgProviderSalary": 180000 },
+    "mental_health": { "supportStaffPerProvider": 1.5, "avgProviderSalary": 160000 }
+  },
+  "productivityBenchmarks": {
+    "avgCycleTimeMinutes": { "primary_care": 18, "specialist": 25, "surgical": 45 },
+    "optimalCycleTimeMinutes": { "primary_care": 14, "specialist": 20, "surgical": 35 },
+    "revenuePerProviderDay": { "primary_care": 3200, "specialist": 5800, "surgical": 12000 }
+  }
+}

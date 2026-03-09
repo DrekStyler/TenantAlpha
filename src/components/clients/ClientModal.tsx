@@ -13,6 +13,7 @@ interface ClientData {
   phone?: string | null;
   industry?: string | null;
   companySize?: string | null;
+  surveyMode?: string | null;
 }
 
 interface ClientModalProps {
@@ -58,6 +59,7 @@ export function ClientModal({ client, onSave, onClose }: ClientModalProps) {
   const [phone, setPhone] = useState(client?.phone ?? "");
   const [industry, setIndustry] = useState(client?.industry ?? "");
   const [companySize, setCompanySize] = useState(client?.companySize ?? "");
+  const [surveyMode, setSurveyMode] = useState(client?.surveyMode ?? "STATIC");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +78,7 @@ export function ClientModal({ client, onSave, onClose }: ClientModalProps) {
         phone: phone.trim() || undefined,
         industry: industry || undefined,
         companySize: companySize || undefined,
+        surveyMode: surveyMode || undefined,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save client");
@@ -132,6 +135,42 @@ export function ClientModal({ client, onSave, onClose }: ClientModalProps) {
               value={companySize}
               onChange={(e) => setCompanySize(e.target.value)}
             />
+          </div>
+
+          {/* Survey Mode Toggle */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-navy-700">
+              Survey Type
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSurveyMode("STATIC")}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  surveyMode === "STATIC"
+                    ? "border-navy-900 bg-navy-900 text-white"
+                    : "border-navy-200 text-navy-600 hover:bg-navy-50"
+                }`}
+              >
+                Static Form
+              </button>
+              <button
+                type="button"
+                onClick={() => setSurveyMode("AI_AGENT")}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  surveyMode === "AI_AGENT"
+                    ? "border-navy-900 bg-navy-900 text-white"
+                    : "border-navy-200 text-navy-600 hover:bg-navy-50"
+                }`}
+              >
+                AI Survey Agent
+              </button>
+            </div>
+            <p className="mt-1 text-[10px] text-navy-400">
+              {surveyMode === "AI_AGENT"
+                ? "AI conducts a guided conversation to gather industry-specific data and produce ROI analysis."
+                : "Client fills out a standard questionnaire form."}
+            </p>
           </div>
 
           {error && (

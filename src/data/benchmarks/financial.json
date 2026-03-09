@@ -1,0 +1,28 @@
+{
+  "advisorBenchmarks": {
+    "ria": { "revenuePerAdvisor": 750000, "aumPerAdvisor": 125000000 },
+    "wireHouse": { "revenuePerAdvisor": 1200000, "aumPerAdvisor": 200000000 },
+    "independent": { "revenuePerAdvisor": 500000, "aumPerAdvisor": 80000000 },
+    "banking": { "revenuePerAdvisor": 350000, "aumPerAdvisor": 50000000 }
+  },
+  "complianceCosts": {
+    "BASIC": { "annual": 25000, "setupCost": 15000 },
+    "SEC_REGISTERED": { "annual": 75000, "setupCost": 50000 },
+    "FINRA": { "annual": 120000, "setupCost": 80000 },
+    "BANKING": { "annual": 200000, "setupCost": 150000 }
+  },
+  "spaceStandards": {
+    "advisorOfficeSF": 180,
+    "clientMeetingRoomSF": 250,
+    "tradingFloorPerSeatSF": 100,
+    "vaultSF": 150,
+    "receptionPerHeadSF": 20,
+    "commonAreaFactor": 1.3
+  },
+  "clientExperienceFactors": {
+    "classABuildingPremium": 0.08,
+    "lobbyQualityImpact": 0.05,
+    "parkingConvenienceImpact": 0.03,
+    "locationPrestigeImpact": 0.06
+  }
+}

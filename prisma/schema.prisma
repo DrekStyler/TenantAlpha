@@ -64,6 +64,7 @@ model Deal {
   propertyType PropertyType @default(OFFICE) @map("property_type")
   status       DealStatus   @default(DRAFT)
   stage        DealStage    @default(PROSPECTING)
+  sourceType   String       @default("MANUAL") @map("source_type") // "MANUAL" | "AI_SURVEY"
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
@@ -235,6 +236,15 @@ enum ClientSize {
   ENTERPRISE   // 200+
 }
 
+enum IndustryType {
+  MEDICAL
+  LEGAL
+  AEROSPACE_DEFENSE
+  TECH
+  FINANCIAL
+  GENERAL_OFFICE
+}
+
 model Client {
   id            String      @id @default(cuid())
   userId        String      @map("user_id")
@@ -248,6 +258,9 @@ model Client {
   phone         String?
   industry      String?
   companySize   ClientSize? @map("company_size")
+
+  // Survey mode: "STATIC" (default) or "AI_AGENT"
+  surveyMode    String      @default("STATIC") @map("survey_mode")
 
   // Questionnaire answers (null = not yet submitted)
   currentHeadcount       Int?    @map("current_headcount")
@@ -266,12 +279,65 @@ model Client {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user  UserProfile @relation(fields: [userId], references: [clerkUserId])
-  deals Deal[]
+  user            UserProfile      @relation(fields: [userId], references: [clerkUserId])
+  deals           Deal[]
+  industryProfile IndustryProfile?
+  surveySession   SurveySession?
 
   @@index([userId])
   @@index([token])
   @@map("clients")
+}
+
+// ─── Industry Profile (AI Survey ROI Data) ───────────────────────
+
+model IndustryProfile {
+  id             String       @id @default(cuid())
+  clientId       String       @unique @map("client_id")
+  industryType   IndustryType @map("industry_type")
+
+  // Flexible JSON for industry-specific fields
+  // Medical: { providers, examRooms, visitsPerProviderDay, reimbursementPerVisit, payerMix, cycleTimeMinutes, specialtyType }
+  // Legal: { partners, associates, paralegals, billableHourTarget, realizationRate, blendedBillingRate, practiceAreas }
+  // Aerospace: { scifRequired, facilityCleared, clearanceLevel, itarCompliant, cmmcLevel, powerRequirementKW, ceilingHeightFt }
+  // Tech: { engineers, productTeams, deploymentFrequency, hybridWorkPercent }
+  // Financial: { advisors, aum, clientMeetingsPerWeek, complianceLevel }
+  industryInputs Json         @map("industry_inputs")
+
+  // Computed ROI outputs (cached after calculation)
+  roiOutputs     Json?        @map("roi_outputs")
+
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("industry_profiles")
+}
+
+// ─── Survey Session (AI Conversation State) ──────────────────────
+
+model SurveySession {
+  id            String   @id @default(cuid())
+  clientId      String   @unique @map("client_id")
+  token         String   // matches Client.token for lookup
+
+  // Conversation history (array of {role, content, timestamp} objects)
+  messages      Json     @default("[]")
+
+  // Extracted structured data accumulated as AI parses answers
+  extractedData Json     @default("{}") @map("extracted_data")
+
+  // Survey progress: INDUSTRY_DETECTION -> INDUSTRY_QUESTIONS -> LEASE_PREFERENCES -> REVIEW -> COMPLETED
+  phase         String   @default("INDUSTRY_DETECTION")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("survey_sessions")
 }
 
 // ─── Memo Artifact (DOCX Generation Records) ───────────────────

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ComparisonResult } from "@/engine/types";
+import type { ROIOutputs } from "@/types/survey";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { MetricsSummaryTable } from "./MetricsSummaryTable";
 import { ComparisonTable } from "./ComparisonTable";
@@ -12,17 +13,28 @@ import { NPVComparisonChart } from "./NPVComparisonChart";
 import { AISummary } from "@/components/ai/AISummary";
 import { AIChatWindow } from "@/components/ai/AIChatWindow";
 import { LocationTab } from "./LocationTab";
+import { ROIAnalysisTab } from "./roi/ROIAnalysisTab";
 
 interface ResultsDashboardProps {
   dealId: string;
   dealName: string;
   results: ComparisonResult;
+  roiOutputs?: ROIOutputs | null;
+  industryType?: string | null;
 }
 
-const TABS = ["Summary", "Cash Flows", "Comparison", "AI Assistant", "Location"] as const;
-type Tab = (typeof TABS)[number];
+function buildTabs(hasROI: boolean) {
+  const tabs = ["Summary", "Cash Flows", "Comparison"] as const;
+  if (hasROI) {
+    return [...tabs, "ROI Analysis", "AI Assistant", "Location"] as const;
+  }
+  return [...tabs, "AI Assistant", "Location"] as const;
+}
 
-export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboardProps) {
+type Tab = "Summary" | "Cash Flows" | "Comparison" | "ROI Analysis" | "AI Assistant" | "Location";
+
+export function ResultsDashboard({ dealId, dealName, results, roiOutputs, industryType }: ResultsDashboardProps) {
+  const TABS = buildTabs(!!roiOutputs);
   const [activeTab, setActiveTab] = useState<Tab>("Summary");
 
   return (
@@ -103,6 +115,11 @@ export function ResultsDashboard({ dealId, dealName, results }: ResultsDashboard
           />
           <ComparisonTable results={results} />
         </Card>
+      )}
+
+      {/* ROI Analysis Tab */}
+      {activeTab === "ROI Analysis" && roiOutputs && (
+        <ROIAnalysisTab roiOutputs={roiOutputs} industryType={industryType} />
       )}
 
       {/* AI Assistant Tab */}

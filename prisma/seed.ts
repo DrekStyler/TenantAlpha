@@ -65,6 +65,7 @@ async function main() {
       clientName: "Acme Corp",
       propertyType: "OFFICE",
       status: "CALCULATED",
+      stage: "NEGOTIATION",
     },
   });
 
@@ -164,6 +165,7 @@ async function main() {
       clientName: "Brightline Logistics",
       propertyType: "INDUSTRIAL",
       status: "DRAFT",
+      stage: "REQUIREMENTS",
     },
   });
 

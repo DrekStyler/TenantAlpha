@@ -1,0 +1,26 @@
+{
+  "markets": {
+    "new_york_manhattan": { "asking": 75, "effective": 65, "vacancy": 12.5 },
+    "new_york_midtown": { "asking": 82, "effective": 71, "vacancy": 14.2 },
+    "san_francisco": { "asking": 68, "effective": 55, "vacancy": 22.1 },
+    "los_angeles_westside": { "asking": 58, "effective": 50, "vacancy": 16.8 },
+    "chicago_loop": { "asking": 42, "effective": 35, "vacancy": 18.5 },
+    "boston_back_bay": { "asking": 62, "effective": 54, "vacancy": 11.2 },
+    "washington_dc": { "asking": 55, "effective": 48, "vacancy": 15.3 },
+    "seattle": { "asking": 48, "effective": 40, "vacancy": 19.5 },
+    "austin": { "asking": 45, "effective": 38, "vacancy": 20.1 },
+    "miami": { "asking": 52, "effective": 45, "vacancy": 13.8 },
+    "denver": { "asking": 38, "effective": 32, "vacancy": 17.2 },
+    "dallas": { "asking": 32, "effective": 27, "vacancy": 21.5 },
+    "houston": { "asking": 30, "effective": 25, "vacancy": 23.8 },
+    "atlanta": { "asking": 34, "effective": 28, "vacancy": 19.5 },
+    "phoenix": { "asking": 30, "effective": 26, "vacancy": 16.0 },
+    "philadelphia": { "asking": 35, "effective": 30, "vacancy": 14.5 },
+    "nashville": { "asking": 36, "effective": 31, "vacancy": 15.2 },
+    "charlotte": { "asking": 33, "effective": 28, "vacancy": 14.8 },
+    "minneapolis": { "asking": 28, "effective": 23, "vacancy": 20.5 },
+    "portland": { "asking": 32, "effective": 26, "vacancy": 22.0 }
+  },
+  "nationalAverage": { "asking": 38, "effective": 32, "vacancy": 17.5 },
+  "note": "Rates in $/SF/yr for Class A office, Q4 2024 estimates"
+}

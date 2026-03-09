@@ -1,0 +1,37 @@
+{
+  "billingRates": {
+    "amlaw100": { "partner": 950, "associate": 550, "paralegal": 275 },
+    "amlaw200": { "partner": 725, "associate": 425, "paralegal": 225 },
+    "midsize": { "partner": 550, "associate": 325, "paralegal": 175 },
+    "boutique": { "partner": 650, "associate": 375, "paralegal": 200 },
+    "small": { "partner": 400, "associate": 250, "paralegal": 150 }
+  },
+  "realizationBenchmarks": {
+    "amlaw100": 93,
+    "amlaw200": 90,
+    "midsize": 87,
+    "boutique": 91,
+    "small": 85
+  },
+  "leverageRatios": {
+    "litigation": { "associatesPerPartner": 3.0, "paralegalsPerPartner": 1.5 },
+    "corporate": { "associatesPerPartner": 2.5, "paralegalsPerPartner": 1.0 },
+    "ip": { "associatesPerPartner": 2.0, "paralegalsPerPartner": 2.0 },
+    "real_estate": { "associatesPerPartner": 1.5, "paralegalsPerPartner": 2.0 },
+    "family": { "associatesPerPartner": 1.0, "paralegalsPerPartner": 1.5 }
+  },
+  "spaceStandards": {
+    "partnerOfficeSF": 225,
+    "associateOfficeSF": 150,
+    "paralegalWorkstationSF": 80,
+    "conferenceRoomSF": 300,
+    "depositionRoomSF": 250,
+    "libraryPerAttorneySF": 25,
+    "commonAreaFactor": 1.35
+  },
+  "billableHourTargets": {
+    "partner": 1800,
+    "associate": 2000,
+    "paralegal": 1500
+  }
+}

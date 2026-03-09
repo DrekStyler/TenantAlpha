@@ -1,0 +1,36 @@
+{
+  "scifCosts": {
+    "newConstruction": { "perSF": 350, "avgTimeline": 180 },
+    "renovation": { "perSF": 225, "avgTimeline": 120 }
+  },
+  "sapfCosts": {
+    "newConstruction": { "perSF": 550, "avgTimeline": 270 },
+    "renovation": { "perSF": 400, "avgTimeline": 180 }
+  },
+  "cmmcComplianceCosts": {
+    "1": 15000,
+    "2": 50000,
+    "3": 150000,
+    "4": 350000,
+    "5": 750000
+  },
+  "facilityRequirements": {
+    "minPowerDensityWattsPerSF": { "office": 5, "lab": 25, "manufacturing": 40 },
+    "minCeilingHeight": { "office": 9, "lab": 12, "manufacturing": 16 },
+    "minFloorLoadPSF": { "office": 50, "lab": 100, "manufacturing": 250 }
+  },
+  "primeContractors": [
+    "Lockheed Martin", "Boeing", "Raytheon", "Northrop Grumman",
+    "General Dynamics", "BAE Systems", "L3Harris", "Leidos"
+  ],
+  "governmentFacilities": [
+    "Pentagon", "NSA", "NRO", "DIA", "CIA",
+    "Wright-Patterson AFB", "Edwards AFB", "Redstone Arsenal"
+  ],
+  "contractWinFactors": {
+    "facilityCleared": 0.03,
+    "scifAvailable": 0.02,
+    "primeProximityPerFacility": 0.015,
+    "govProximityPerFacility": 0.012
+  }
+}

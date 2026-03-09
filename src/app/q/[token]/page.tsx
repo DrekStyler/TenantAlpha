@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
+import { SurveyChat } from "@/components/survey/SurveyChat";
+import type { SurveyMessage, SurveyPhase, ExtractedSurveyData } from "@/types/survey";
 
 interface ClientInfo {
   clientName: string;
@@ -13,6 +15,10 @@ interface ClientInfo {
   alreadyCompleted: boolean;
   brokerName?: string;
   brokerageName?: string;
+  surveyMode?: string;
+  phase?: SurveyPhase;
+  messages?: SurveyMessage[];
+  extractedData?: ExtractedSurveyData;
 }
 
 const timelineOptions = [
@@ -69,13 +75,23 @@ export default function QuestionnairePage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`/api/questionnaire/${token}`);
-      if (!res.ok) {
-        setNotFound(true);
+      // Try survey API first (returns surveyMode + session state)
+      const surveyRes = await fetch(`/api/survey/${token}`);
+      if (!surveyRes.ok) {
+        // Fall back to questionnaire API for older clients
+        const qRes = await fetch(`/api/questionnaire/${token}`);
+        if (!qRes.ok) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        const data = await qRes.json();
+        setClientInfo(data);
+        if (data.alreadyCompleted) setSubmitted(true);
         setLoading(false);
         return;
       }
-      const data = await res.json();
+      const data = await surveyRes.json();
       setClientInfo(data);
       if (data.alreadyCompleted) setSubmitted(true);
       setLoading(false);
@@ -163,6 +179,20 @@ export default function QuestionnairePage() {
           </p>
         </div>
       </div>
+    );
+  }
+
+  // AI Agent mode — render conversational survey
+  if (clientInfo?.surveyMode === "AI_AGENT" && !submitted) {
+    return (
+      <SurveyChat
+        token={token}
+        clientName={clientInfo.clientName}
+        brokerageName={clientInfo.brokerageName}
+        initialMessages={clientInfo.messages ?? []}
+        initialPhase={clientInfo.phase ?? "INDUSTRY_DETECTION"}
+        initialExtractedData={clientInfo.extractedData ?? {}}
+      />
     );
   }
 

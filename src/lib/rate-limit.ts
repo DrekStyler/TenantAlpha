@@ -92,4 +92,6 @@ export const RATE_LIMITS = {
   location: { maxRequests: 20, windowMs: 60_000 },
   /** Memo (Word doc) generation: 3 per minute per user (calls AI + DOCX) */
   memo: { maxRequests: 3, windowMs: 60_000 },
+  /** AI Survey: 30 per minute per token (conversational pace) */
+  survey: { maxRequests: 30, windowMs: 60_000 },
 } as const;

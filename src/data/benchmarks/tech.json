@@ -1,0 +1,31 @@
+{
+  "salaryBenchmarks": {
+    "software_engineer": { "junior": 105000, "mid": 155000, "senior": 210000 },
+    "product_manager": { "junior": 110000, "mid": 145000, "senior": 195000 },
+    "data_scientist": { "junior": 100000, "mid": 150000, "senior": 200000 },
+    "designer": { "junior": 85000, "mid": 125000, "senior": 170000 }
+  },
+  "productivityMetrics": {
+    "revenuePerEngineer": { "startup": 350000, "growth": 500000, "enterprise": 750000 },
+    "deploymentFrequency": {
+      "elite": "multiple_per_day",
+      "high": "daily",
+      "medium": "weekly",
+      "low": "monthly"
+    }
+  },
+  "hybridWorkBenchmarks": {
+    "deskSharingRatio": { "low": 1.0, "moderate": 0.7, "high": 0.5 },
+    "avgRemoteDaysPerWeek": 2.5,
+    "costSavingsPerRemoteDay": 35,
+    "productivityImpactPercent": 3
+  },
+  "spaceStandards": {
+    "deskPerEngineer": 65,
+    "collaborationZoneSF": 400,
+    "hudleRoomSF": 80,
+    "serverRoomSF": 200,
+    "kitchenPerHeadSF": 15,
+    "openPlanFactor": 0.85
+  }
+}

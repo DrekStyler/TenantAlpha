@@ -8,6 +8,10 @@ export type {
   ComparisonResult,
 } from "./types";
 
+// ROI Framework exports
+export { calculateFullROI } from "./roi";
+export type { ROIOutputs, FullROIInput } from "./roi";
+
 export { calculateAnnualBaseRent, calculateAnnualOpEx } from "./escalation";
 export {
   calculateMonthlyBreakdown,

@@ -9,6 +9,7 @@ export const clientSchema = z.object({
   companySize: z
     .enum(["SOLO", "SMALL", "MEDIUM", "LARGE", "ENTERPRISE"])
     .optional(),
+  surveyMode: z.enum(["STATIC", "AI_AGENT"]).optional(),
 });
 
 export type ClientFormData = z.infer<typeof clientSchema>;

@@ -18,10 +18,10 @@ interface CapitalSectionProps {
 
 export function CapitalSection({ data }: CapitalSectionProps) {
   const chartData = [
-    { name: "TI Received", value: data.tiDollarsReceived, color: "#102a43" },
-    { name: "Capital Preserved", value: data.tenantCapitalPreserved, color: "#486581" },
-    { name: "Free Rent Savings", value: data.freeRentWorkingCapitalSaved, color: "#d4a017" },
-    { name: "Out of Pocket", value: -data.tenantOutOfPocket, color: "#829ab1" },
+    { name: "TI Received", value: data.tiDollarsReceived, color: "#1a1a1a" },
+    { name: "Capital Preserved", value: data.tenantCapitalPreserved, color: "#4a4a44" },
+    { name: "Free Rent Savings", value: data.freeRentWorkingCapitalSaved, color: "#A4863D" },
+    { name: "Out of Pocket", value: -data.tenantOutOfPocket, color: "#7d7d77" },
   ];
 
   return (
@@ -34,12 +34,12 @@ export function CapitalSection({ data }: CapitalSectionProps) {
             <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number | undefined) => v ? `$${Math.round(v / 1000)}K` : "$0"}

@@ -39,16 +39,16 @@ export function AnnualCashFlowLineChart({ options }: AnnualCashFlowLineChartProp
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e4" vertical={false} />
         <XAxis
           dataKey="year"
-          tick={{ fontSize: 12, fill: "#627d98" }}
+          tick={{ fontSize: 12, fill: "#5c5c56" }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 11, fill: "#627d98" }}
+          tick={{ fontSize: 11, fill: "#5c5c56" }}
           tickLine={false}
           axisLine={false}
           width={60}
@@ -58,7 +58,7 @@ export function AnnualCashFlowLineChart({ options }: AnnualCashFlowLineChartProp
             formatCurrency(value ?? 0),
             shortName(name ?? ""),
           ]}
-          contentStyle={{ fontSize: 13, borderRadius: "8px", border: "1px solid #d9e2ec" }}
+          contentStyle={{ fontSize: 13, borderRadius: "8px", border: "1px solid #e8e8e4" }}
         />
         <Legend
           formatter={shortName}

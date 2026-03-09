@@ -98,20 +98,20 @@ export function NPVChartSection({
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#d9e2ec"
+                stroke="#e8e8e4"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-                tick={{ fontSize: 11, fill: "#627d98" }}
+                tick={{ fontSize: 11, fill: "#5c5c56" }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fontSize: 12, fill: "#627d98" }}
+                tick={{ fontSize: 12, fill: "#5c5c56" }}
                 tickLine={false}
                 axisLine={false}
                 width={80}
@@ -124,9 +124,9 @@ export function NPVChartSection({
                 contentStyle={{
                   fontSize: 13,
                   borderRadius: "8px",
-                  border: "1px solid #d9e2ec",
+                  border: "1px solid #e8e8e4",
                 }}
-                cursor={{ fill: "#f0f4f8" }}
+                cursor={{ fill: "#f7f7f5" }}
               />
               <Bar dataKey="npv" radius={[0, 4, 4, 0]} isAnimationActive={true}>
                 {data.map((entry, index) => (
@@ -150,20 +150,20 @@ export function NPVChartSection({
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#d9e2ec"
+                stroke="#e8e8e4"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-                tick={{ fontSize: 11, fill: "#627d98" }}
+                tick={{ fontSize: 11, fill: "#5c5c56" }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fontSize: 12, fill: "#627d98" }}
+                tick={{ fontSize: 12, fill: "#5c5c56" }}
                 tickLine={false}
                 axisLine={false}
                 width={80}
@@ -176,9 +176,9 @@ export function NPVChartSection({
                 contentStyle={{
                   fontSize: 13,
                   borderRadius: "8px",
-                  border: "1px solid #d9e2ec",
+                  border: "1px solid #e8e8e4",
                 }}
-                cursor={{ fill: "#f0f4f8" }}
+                cursor={{ fill: "#f7f7f5" }}
               />
               <Bar
                 dataKey="totalCost"

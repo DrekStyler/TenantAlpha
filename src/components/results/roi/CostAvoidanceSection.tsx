@@ -34,12 +34,12 @@ export function CostAvoidanceSection({ data }: CostAvoidanceSectionProps) {
             <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number | undefined) => v ? `$${Math.round(v / 1000)}K` : "$0"}

@@ -1,31 +1,40 @@
 export const theme = {
   colors: {
     navy: {
-      50: "#f0f4f8",
-      100: "#d9e2ec",
-      200: "#bcccdc",
-      300: "#9fb3c8",
-      400: "#829ab1",
-      500: "#627d98",
-      600: "#486581",
-      700: "#334e68",
-      800: "#243b53",
-      900: "#102a43",
+      50: "#f7f7f5",
+      100: "#e8e8e4",
+      200: "#d1d1cc",
+      300: "#a8a8a2",
+      400: "#7d7d77",
+      500: "#5c5c56",
+      600: "#4a4a44",
+      700: "#3d3d38",
+      800: "#333333",
+      900: "#1a1a1a",
     },
     gold: {
-      300: "#f7d070",
-      400: "#f0c040",
-      500: "#d4a017",
-      600: "#b8860b",
+      300: "#d4b87a",
+      400: "#c4a55a",
+      500: "#A4863D",
+      600: "#8a6f2e",
+    },
+    lavender: {
+      50: "#f5f5fd",
+      100: "#E6E6FA",
+      200: "#d0d0f0",
+    },
+    forest: {
+      800: "#1a4a1a",
+      900: "#0E300E",
     },
   },
 } as const;
 
 // Chart colors for each lease option
 export const OPTION_COLORS = [
-  "#102a43", // Navy (Option A)
-  "#d4a017", // Gold (Option B)
-  "#486581", // Mid Navy (Option C)
-  "#f0c040", // Light Gold (Option D)
-  "#829ab1", // Light Navy (Option E)
+  "#1a1a1a", // Charcoal (Option A)
+  "#A4863D", // Brass (Option B)
+  "#0E300E", // Forest (Option C)
+  "#c4a55a", // Light Brass (Option D)
+  "#7d7d77", // Mid Gray (Option E)
 ] as const;

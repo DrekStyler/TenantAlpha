@@ -32,22 +32,22 @@ export function StrategicSection({ data }: StrategicSectionProps) {
         <div className="h-52">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-              <PolarGrid stroke="#d9e2ec" />
+              <PolarGrid stroke="#e8e8e4" />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fontSize: 11, fill: "#627d98" }}
+                tick={{ fontSize: 11, fill: "#5c5c56" }}
               />
               <PolarRadiusAxis
                 angle={90}
                 domain={[0, 10]}
-                tick={{ fontSize: 9, fill: "#829ab1" }}
+                tick={{ fontSize: 9, fill: "#7d7d77" }}
                 tickCount={6}
               />
               <Radar
                 name="Score"
                 dataKey="score"
-                stroke="#102a43"
-                fill="#102a43"
+                stroke="#1a1a1a"
+                fill="#1a1a1a"
                 fillOpacity={0.2}
                 strokeWidth={2}
               />

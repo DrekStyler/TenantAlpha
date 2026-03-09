@@ -33,10 +33,10 @@ export function TotalCostBarChart({ options }: TotalCostBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 10, right: 10, bottom: 40, left: 10 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#d9e2ec" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e4" vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 12, fill: "#627d98" }}
+          tick={{ fontSize: 12, fill: "#5c5c56" }}
           tickLine={false}
           axisLine={false}
           angle={-15}
@@ -45,15 +45,15 @@ export function TotalCostBarChart({ options }: TotalCostBarChartProps) {
         />
         <YAxis
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 11, fill: "#627d98" }}
+          tick={{ fontSize: 11, fill: "#5c5c56" }}
           tickLine={false}
           axisLine={false}
           width={60}
         />
         <Tooltip
           formatter={(value: number | undefined) => [formatCurrency(value ?? 0), "Total Cost"]}
-          contentStyle={{ fontSize: 13, borderRadius: "8px", border: "1px solid #d9e2ec" }}
-          cursor={{ fill: "#f0f4f8" }}
+          contentStyle={{ fontSize: 13, borderRadius: "8px", border: "1px solid #e8e8e4" }}
+          cursor={{ fill: "#f7f7f5" }}
         />
         <Bar dataKey="totalCost" radius={[4, 4, 0, 0]}>
           {data.map((entry, index) => (

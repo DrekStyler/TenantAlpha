@@ -14,15 +14,15 @@ import { AMENITY_CATEGORIES } from "@/types/location";
 // External font CDN calls (Google Fonts) are unreliable in serverless functions.
 
 const colors = {
-  navy: "#102a43",
-  navyMid: "#486581",
-  navyLight: "#d9e2ec",
-  navyBg: "#f0f4f8",
-  gold: "#d4a017",
+  navy: "#1a1a1a",
+  navyMid: "#4a4a44",
+  navyLight: "#e8e8e4",
+  navyBg: "#f7f7f5",
+  gold: "#A4863D",
   white: "#ffffff",
-  text: "#334e68",
-  muted: "#627d98",
-  border: "#d9e2ec",
+  text: "#3d3d38",
+  muted: "#5c5c56",
+  border: "#e8e8e4",
 };
 
 const s = StyleSheet.create({
@@ -33,7 +33,7 @@ const s = StyleSheet.create({
   coverHero: { backgroundColor: colors.navy, padding: 48, minHeight: 300, justifyContent: "flex-end" },
   coverTag: { color: colors.gold, fontSize: 10, fontWeight: 600, letterSpacing: 2, marginBottom: 12, textTransform: "uppercase" },
   coverTitle: { color: colors.white, fontSize: 26, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 },
-  coverClient: { color: "#9fb3c8", fontSize: 13 },
+  coverClient: { color: "#a8a8a2", fontSize: 13 },
   coverFooter: { paddingHorizontal: 48, paddingVertical: 32, backgroundColor: colors.navyBg },
   coverBroker: { fontSize: 11, color: colors.navyMid, lineHeight: 1.6 },
   coverDate: { fontSize: 10, color: colors.muted, marginTop: 8 },
@@ -51,9 +51,9 @@ const s = StyleSheet.create({
 
   // Best Value Banner
   banner: { backgroundColor: colors.navy, borderRadius: 6, padding: 14, marginBottom: 16 },
-  bannerLabel: { fontSize: 8, color: "#9fb3c8", fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 },
+  bannerLabel: { fontSize: 8, color: "#a8a8a2", fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 },
   bannerTitle: { fontSize: 14, fontWeight: 700, color: colors.white, marginBottom: 6 },
-  bannerReason: { fontSize: 10, color: "#c8d8e8", marginBottom: 3, flexDirection: "row" },
+  bannerReason: { fontSize: 10, color: "#d1d1cc", marginBottom: 3, flexDirection: "row" },
   bannerCheck: { color: colors.gold, marginRight: 6 },
 
   // Summary text
@@ -230,12 +230,12 @@ export function PDFDocument({
           {bestValueReasons.map((r, i) => (
             <View key={i} style={s.bannerReason}>
               <Text style={s.bannerCheck}>-</Text>
-              <Text style={{ fontSize: 10, color: "#c8d8e8", flex: 1 }}>{r}</Text>
+              <Text style={{ fontSize: 10, color: "#d1d1cc", flex: 1 }}>{r}</Text>
             </View>
           ))}
           {/* NPV differential vs next-best option */}
           {npvDifferential != null && (
-            <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: "#334e68", paddingTop: 6 }}>
+            <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: "#3d3d38", paddingTop: 6 }}>
               <Text style={{ fontSize: 9, color: colors.gold, fontWeight: 600 }}>
                 NPV Savings: {fmt(npvDifferential)} vs. next-best option
               </Text>

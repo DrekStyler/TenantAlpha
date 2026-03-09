@@ -38,7 +38,7 @@ export function ProductivitySection({ data }: ProductivitySectionProps) {
             <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
               <XAxis
                 type="number"
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number | undefined) => v ? `$${Math.round(v / 1000)}K` : "$0"}
@@ -46,7 +46,7 @@ export function ProductivitySection({ data }: ProductivitySectionProps) {
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "#627d98" }}
+                tick={{ fontSize: 10, fill: "#5c5c56" }}
                 axisLine={false}
                 tickLine={false}
                 width={100}
@@ -58,8 +58,8 @@ export function ProductivitySection({ data }: ProductivitySectionProps) {
                 ]}
               />
               <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                <Cell fill="#829ab1" />
-                <Cell fill="#102a43" />
+                <Cell fill="#7d7d77" />
+                <Cell fill="#1a1a1a" />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

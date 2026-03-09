@@ -41,6 +41,7 @@ export async function GET(
           industryType: true,
           industryInputs: true,
           roiOutputs: true,
+          roiCalcInputs: true,
         },
       },
     },
@@ -101,6 +102,7 @@ export async function GET(
     industry: client.industry,
     comparisonResults,
     roiOutputs: client.industryProfile?.roiOutputs ?? null,
+    roiCalcInputs: client.industryProfile?.roiCalcInputs ?? null,
     industryType: client.industryProfile?.industryType ?? null,
     industryInputs: client.industryProfile?.industryInputs ?? null,
   });

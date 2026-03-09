@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import type { ComparisonResult } from "@/engine/types";
 import type { ROIOutputs } from "@/types/survey";
 import { ResultsDashboard } from "@/components/results/ResultsDashboard";
-import { ROIInsightsPanel } from "@/components/results/ROIInsightsPanel";
+import { ROIInsightsPanel, type ROICalcInputs } from "@/components/results/ROIInsightsPanel";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface SurveyResults {
@@ -14,6 +14,7 @@ interface SurveyResults {
   industry: string | null;
   comparisonResults: ComparisonResult | null;
   roiOutputs: ROIOutputs | null;
+  roiCalcInputs: ROICalcInputs | null;
   industryType: string | null;
   industryInputs: Record<string, unknown> | null;
 }
@@ -119,6 +120,7 @@ export default function SurveyResultsPage({
         ) : data.roiOutputs ? (
           <ROIInsightsPanel
             roiOutputs={data.roiOutputs}
+            roiCalcInputs={data.roiCalcInputs}
             industryType={data.industryType}
           />
         ) : null}

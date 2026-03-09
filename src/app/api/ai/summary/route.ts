@@ -34,11 +34,29 @@ export async function POST(req: Request) {
 
   const deal = await prisma.deal.findUnique({
     where: { id: dealId },
-    include: { options: { orderBy: { sortOrder: "asc" } } },
+    include: {
+      options: { orderBy: { sortOrder: "asc" } },
+      aiSummary: true,
+    },
   });
 
   if (!deal) return notFound("Deal");
   if (deal.userId !== userId) return forbidden();
+
+  // Return cached summary if options haven't changed since it was generated
+  if (deal.aiSummary?.summaryText) {
+    const summaryTime = deal.aiSummary.generatedAt.getTime();
+    const dealChanged = deal.updatedAt.getTime() > summaryTime;
+    const optionsChanged = deal.options.some(
+      (o) => o.updatedAt.getTime() > summaryTime
+    );
+
+    if (!dealChanged && !optionsChanged) {
+      return new Response(deal.aiSummary.summaryText, {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+  }
 
   const dealContext = sanitizeDealContext(
     buildDealContext(deal.dealName, sanitizeOptions(deal.options), calculationResults as ComparisonResult | undefined)
@@ -48,20 +66,17 @@ export async function POST(req: Request) {
 
 ${dealContext}`;
 
-  let accumulatedText = "";
-
   const result = streamText({
     model: anthropic("claude-sonnet-4-20250514"),
     system: CRE_ADVISOR_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage }],
     maxOutputTokens: 500,
     onFinish: async ({ text }) => {
-      accumulatedText = text;
       // Cache the summary
       await prisma.aISummary.upsert({
         where: { dealId },
-        update: { summaryText: accumulatedText, generatedAt: new Date() },
-        create: { dealId, summaryText: accumulatedText },
+        update: { summaryText: text, generatedAt: new Date() },
+        create: { dealId, summaryText: text },
       });
     },
   });

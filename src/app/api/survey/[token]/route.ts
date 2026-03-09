@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { streamText, tool } from "ai";
+import { streamText, tool, stepCountIs } from "ai";
 import { prisma } from "@/lib/prisma";
 import { ok, notFound, badRequest, err, tooManyRequests } from "@/lib/api";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -160,6 +160,7 @@ ${surveyContext}`;
     system: systemPrompt,
     messages: aiMessages,
     maxOutputTokens: 1000,
+    stopWhen: stepCountIs(3),
     tools: {
       extract_data: tool({
         description:
@@ -225,7 +226,9 @@ ${surveyContext}`;
       }),
     },
     onFinish: async ({ text }) => {
-      // Append assistant message to the conversation
+      // Don't save empty assistant messages (can happen if tool call dominated)
+      if (!text.trim()) return;
+
       const assistantMsg: SurveyMessage = {
         role: "assistant",
         content: text,

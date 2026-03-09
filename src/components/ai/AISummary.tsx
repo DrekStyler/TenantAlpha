@@ -32,22 +32,25 @@ export function AISummary({ dealId, calculationResults }: AISummaryProps) {
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          setError(data.error ?? "Failed to generate summary.");
+          setError((data as { error?: string }).error ?? "Failed to generate summary.");
           setLoading(false);
           return;
         }
 
+        // Accumulate the full response without showing partial text
         const reader = res.body!.getReader();
         const decoder = new TextDecoder();
         let accumulated = "";
-
-        setLoading(false);
 
         while (true) {
           const { done, value } = await reader.read();
           if (done || cancelled) break;
           accumulated += decoder.decode(value, { stream: true });
+        }
+
+        if (!cancelled) {
           setText(accumulated);
+          setLoading(false);
         }
       } catch {
         if (!cancelled) {
@@ -65,7 +68,7 @@ export function AISummary({ dealId, calculationResults }: AISummaryProps) {
     return (
       <div className="flex items-center gap-3 py-4 text-sm text-navy-500">
         <Spinner size="sm" />
-        Generating AI executive summary…
+        Generating executive summary…
       </div>
     );
   }

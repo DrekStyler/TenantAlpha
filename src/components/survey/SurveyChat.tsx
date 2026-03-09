@@ -26,6 +26,22 @@ const INDUSTRY_LABELS: Record<string, string> = {
   GENERAL_OFFICE: "General Office",
 };
 
+/**
+ * Parse multiple choice options from an assistant message.
+ * Matches lines like "A) Option text"
+ */
+function parseChoices(content: string): { letter: string; text: string }[] {
+  const lines = content.split("\n");
+  const choices: { letter: string; text: string }[] = [];
+  for (const line of lines) {
+    const match = line.trim().match(/^([A-Z])\)\s+(.+)$/);
+    if (match) {
+      choices.push({ letter: match[1], text: match[2] });
+    }
+  }
+  return choices;
+}
+
 export function SurveyChat({
   token,
   clientName,
@@ -68,7 +84,6 @@ export function SurveyChat({
         timestamp: new Date().toISOString(),
       };
 
-      const assistantId = Date.now().toString();
       const assistantMsg: SurveyMessage = {
         role: "assistant",
         content: "",
@@ -201,6 +216,19 @@ export function SurveyChat({
     );
   }
 
+  // Parse choices from the last assistant message for clickable buttons
+  const lastMsg = messages[messages.length - 1];
+  const lastAssistantChoices =
+    !isLoading && lastMsg?.role === "assistant" && lastMsg.content
+      ? parseChoices(lastMsg.content)
+      : [];
+  const hasOtherOption = lastAssistantChoices.some(
+    (c) => c.text.toLowerCase().startsWith("other")
+  );
+  const nonOtherChoices = lastAssistantChoices.filter(
+    (c) => !c.text.toLowerCase().startsWith("other")
+  );
+
   return (
     <div className="min-h-screen bg-navy-50 px-4 py-6 sm:py-8">
       <div className="mx-auto max-w-2xl">
@@ -277,17 +305,51 @@ export function SurveyChat({
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
+          {/* Multiple Choice Buttons */}
+          {phase !== "COMPLETED" && !showReview && nonOtherChoices.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-navy-100 pt-3">
+              {nonOtherChoices.map((choice) => (
+                <button
+                  key={choice.letter}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => sendMessage(`${choice.letter}) ${choice.text}`)}
+                  className="rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-medium text-navy-700 transition-colors hover:border-navy-400 hover:bg-navy-50 disabled:opacity-50"
+                >
+                  {choice.letter}) {choice.text}
+                </button>
+              ))}
+              {hasOtherOption && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => {
+                    const textarea = document.querySelector("textarea");
+                    textarea?.focus();
+                  }}
+                  className="rounded-lg border border-dashed border-navy-300 bg-white px-3 py-1.5 text-xs font-medium text-navy-500 transition-colors hover:border-navy-400 hover:bg-navy-50 disabled:opacity-50"
+                >
+                  Other...
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Text Input */}
           {phase !== "COMPLETED" && !showReview && (
             <form
               onSubmit={handleSubmit}
-              className="mt-4 flex items-end gap-3 border-t border-navy-200 pt-4"
+              className="mt-3 flex items-end gap-3 border-t border-navy-200 pt-3"
             >
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your answer..."
-                rows={2}
+                placeholder={
+                  nonOtherChoices.length > 0
+                    ? "Or type your own answer..."
+                    : "Type your answer..."
+                }
+                rows={1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

@@ -183,6 +183,7 @@ export default function QuestionnairePage() {
   }
 
   if (submitted) {
+    const resultsUrl = encodeURIComponent(`/q/${token}/results`);
     return (
       <div className="flex min-h-screen items-center justify-center bg-navy-50 p-4">
         <div className="max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
@@ -203,9 +204,22 @@ export default function QuestionnairePage() {
           </div>
           <h1 className="text-xl font-bold text-navy-900">Thank You!</h1>
           <p className="mt-2 text-sm text-navy-500">
-            Your responses have been submitted.{" "}
-            {clientInfo?.brokerName || "Your broker"} will use this information
-            to find the best space for your needs.
+            Your responses have been submitted. Create a free account to view
+            your ROI analysis when it&apos;s ready.
+          </p>
+          <a
+            href={`/sign-up?redirect_url=${resultsUrl}`}
+            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-navy-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800"
+          >
+            Sign Up to View Results
+          </a>
+          <p className="mt-3 text-xs text-navy-500">
+            <a
+              href={`/sign-in?redirect_url=${resultsUrl}`}
+              className="text-navy-700 underline hover:text-navy-900"
+            >
+              Already have an account? Sign in
+            </a>
           </p>
         </div>
       </div>

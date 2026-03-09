@@ -2,6 +2,7 @@
 
 import { SignIn } from "@clerk/nextjs";
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 function SignInFallback() {
   return (
@@ -12,11 +13,20 @@ function SignInFallback() {
   );
 }
 
+function SignInForm() {
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect_url");
+
+  return (
+    <SignIn forceRedirectUrl={redirectUrl || "/dashboard"} />
+  );
+}
+
 export default function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-navy-50">
       <Suspense fallback={<SignInFallback />}>
-        <SignIn />
+        <SignInForm />
       </Suspense>
     </div>
   );

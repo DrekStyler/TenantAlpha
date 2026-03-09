@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { ok, notFound, badRequest } from "@/lib/api";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -16,11 +17,15 @@ export async function GET(
   const rl = checkRateLimit(`survey-results:${token}`, RATE_LIMITS.survey);
   if (!rl.allowed) return tooManyRequests(rl.retryAfterMs);
 
+  const { userId: clerkUserId } = await auth();
+
   const client = await prisma.client.findUnique({
     where: { token },
     select: {
       id: true,
       name: true,
+      userId: true,
+      clientClerkUserId: true,
       questionnaireCompletedAt: true,
       industry: true,
       deals: {
@@ -44,6 +49,18 @@ export async function GET(
   if (!client) return notFound("Survey");
   if (!client.questionnaireCompletedAt) {
     return badRequest("Survey has not been completed yet.");
+  }
+
+  // Link authenticated user to this client record (one-time, skip if broker)
+  if (clerkUserId && !client.clientClerkUserId && clerkUserId !== client.userId) {
+    try {
+      await prisma.client.update({
+        where: { id: client.id },
+        data: { clientClerkUserId: clerkUserId },
+      });
+    } catch {
+      // Unique constraint violation — this Clerk account is already linked to another client
+    }
   }
 
   const deal = client.deals[0];

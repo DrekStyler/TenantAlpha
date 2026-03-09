@@ -2,6 +2,7 @@
 
 import { SignUp } from "@clerk/nextjs";
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 function SignUpFallback() {
   return (
@@ -12,11 +13,20 @@ function SignUpFallback() {
   );
 }
 
+function SignUpForm() {
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect_url");
+
+  return (
+    <SignUp forceRedirectUrl={redirectUrl || "/dashboard"} />
+  );
+}
+
 export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-navy-50">
       <Suspense fallback={<SignUpFallback />}>
-        <SignUp />
+        <SignUpForm />
       </Suspense>
     </div>
   );

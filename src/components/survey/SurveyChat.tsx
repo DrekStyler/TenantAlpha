@@ -163,6 +163,7 @@ export function SurveyChat({
 
   // Completed state
   if (phase === "COMPLETED" && dealId) {
+    const resultsUrl = encodeURIComponent(`/q/${token}/results`);
     return (
       <div className="flex min-h-screen items-center justify-center bg-navy-50 p-4">
         <div className="max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
@@ -173,13 +174,27 @@ export function SurveyChat({
           </div>
           <h1 className="text-xl font-bold text-navy-900">Your ROI Analysis is Ready!</h1>
           <p className="mt-2 text-sm text-navy-500">
-            We've analyzed your business data across 4 ROI frameworks to show how your next lease impacts your bottom line.
+            Create a free account to save your results and access them anytime.
+          </p>
+          <a
+            href={`/sign-up?redirect_url=${resultsUrl}`}
+            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-navy-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800"
+          >
+            Sign Up & View Results
+          </a>
+          <p className="mt-3 text-xs text-navy-500">
+            <a
+              href={`/sign-in?redirect_url=${resultsUrl}`}
+              className="text-navy-700 underline hover:text-navy-900"
+            >
+              Already have an account? Sign in
+            </a>
           </p>
           <a
             href={`/q/${token}/results`}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-navy-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800"
+            className="mt-2 inline-block text-xs text-navy-400 underline hover:text-navy-600"
           >
-            View ROI Dashboard
+            Skip for now
           </a>
         </div>
       </div>

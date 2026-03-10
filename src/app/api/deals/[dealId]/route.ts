@@ -55,9 +55,31 @@ export async function PUT(
     }
   }
 
+  // Handle explicit null values from body for clearing fields
+  if ("clientId" in body && body.clientId === null) {
+    (parsed.data as Record<string, unknown>).clientId = null;
+  }
+  if ("searchLocation" in body && body.searchLocation === null) {
+    (parsed.data as Record<string, unknown>).searchLocation = null;
+  }
+  if ("searchLocationBounds" in body && body.searchLocationBounds === null) {
+    (parsed.data as Record<string, unknown>).searchLocationBounds = null;
+  }
+  if ("targetSF" in body && body.targetSF === null) {
+    (parsed.data as Record<string, unknown>).targetSF = null;
+  }
+
+  // Serialize JSON fields for Prisma
+  const data = { ...parsed.data };
+  if (data.searchLocationBounds !== undefined) {
+    data.searchLocationBounds = data.searchLocationBounds
+      ? JSON.parse(JSON.stringify(data.searchLocationBounds))
+      : undefined;
+  }
+
   const updated = await prisma.deal.update({
     where: { id: dealId },
-    data: parsed.data,
+    data,
   });
 
   return ok(updated);

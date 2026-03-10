@@ -20,6 +20,11 @@ import {
   DEFAULT_ESCALATION_PERCENT,
 } from "@/lib/constants";
 
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 interface OptionFormProps {
   dealId: string;
   optionId?: string;
@@ -27,6 +32,7 @@ interface OptionFormProps {
   onSaved?: () => void;
   index: number;
   dealPropertyType?: string;
+  searchLocationBounds?: { ne: LatLng; sw: LatLng };
 }
 
 export function OptionForm({
@@ -36,10 +42,12 @@ export function OptionForm({
   onSaved,
   index,
   dealPropertyType,
+  searchLocationBounds,
 }: OptionFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const [removeBoundaries, setRemoveBoundaries] = useState(false);
 
   const {
     register,
@@ -66,6 +74,23 @@ export function OptionForm({
 
   const escalationType = watch("escalationType");
   const rentStructure = watch("rentStructure");
+
+  // Compute location bias from search bounds for address autocomplete
+  const locationBias =
+    searchLocationBounds && !removeBoundaries
+      ? {
+          rectangle: {
+            low: {
+              latitude: searchLocationBounds.sw.lat,
+              longitude: searchLocationBounds.sw.lng,
+            },
+            high: {
+              latitude: searchLocationBounds.ne.lat,
+              longitude: searchLocationBounds.ne.lng,
+            },
+          },
+        }
+      : undefined;
 
   // Auto-save on change (debounced effect approach)
   const onSubmit = async (data: LeaseOptionFormData) => {
@@ -140,8 +165,23 @@ export function OptionForm({
               setTimeout(() => handleSubmit(onSubmit)(), 0);
             }}
             error={errors.propertyAddress?.message}
+            locationBias={locationBias}
+            includedPrimaryTypes={["real_estate_agency"]}
           />
         </div>
+
+        {/* Remove boundaries toggle */}
+        {searchLocationBounds && (
+          <label className="flex items-center gap-2 text-sm text-navy-500">
+            <input
+              type="checkbox"
+              checked={removeBoundaries}
+              onChange={(e) => setRemoveBoundaries(e.target.checked)}
+              className="accent-navy-900"
+            />
+            Remove location boundaries (search all addresses)
+          </label>
+        )}
 
         {/* Location preview (only if option is saved and address exists) */}
         {optionId && watch("propertyAddress") && (

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { dealSchema, type DealFormData } from "@/schemas/deal";
+import { dealSetupSchema, type DealSetupFormData } from "@/schemas/deal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -35,8 +35,8 @@ export function DealSetupForm() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<DealFormData>({
-    resolver: zodResolver(dealSchema),
+  } = useForm<DealSetupFormData>({
+    resolver: zodResolver(dealSetupSchema),
     defaultValues: { propertyType: "OFFICE" },
   });
 
@@ -53,7 +53,7 @@ export function DealSetupForm() {
     }
   };
 
-  const onSubmit = async (data: DealFormData) => {
+  const onSubmit = async (data: DealSetupFormData) => {
     setLoading(true);
     setError("");
     try {

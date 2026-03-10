@@ -64,9 +64,12 @@ model Deal {
   propertyType PropertyType @default(OFFICE) @map("property_type")
   status       DealStatus   @default(DRAFT)
   stage        DealStage    @default(PROSPECTING)
-  sourceType   String       @default("MANUAL") @map("source_type") // "MANUAL" | "AI_SURVEY"
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  sourceType           String       @default("MANUAL") @map("source_type") // "MANUAL" | "AI_SURVEY"
+  searchLocation       String?      @map("search_location")
+  searchLocationBounds Json?        @map("search_location_bounds")
+  targetSF             Int?         @map("target_sf")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
 
   user      UserProfile  @relation(fields: [userId], references: [clerkUserId])
   client    Client?      @relation(fields: [clientId], references: [id])

@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { OptionForm } from "./OptionForm";
 
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 interface OptionTabsProps {
   dealId: string;
   options: Array<{
@@ -13,6 +18,7 @@ interface OptionTabsProps {
   }>;
   onOptionsChange: () => void;
   dealPropertyType?: string;
+  searchLocationBounds?: { ne: LatLng; sw: LatLng };
 }
 
 export function OptionTabs({
@@ -20,6 +26,7 @@ export function OptionTabs({
   options,
   onOptionsChange,
   dealPropertyType,
+  searchLocationBounds,
 }: OptionTabsProps) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -54,6 +61,7 @@ export function OptionTabs({
             onSaved={onOptionsChange}
             index={activeTab}
             dealPropertyType={dealPropertyType}
+            searchLocationBounds={searchLocationBounds}
           />
         )}
       </div>

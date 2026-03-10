@@ -22,6 +22,9 @@ interface AddressAutocompleteProps {
   error?: string;
   label?: string;
   placeholder?: string;
+  /** Google Places API v1 locationBias — passed through as-is */
+  locationBias?: Record<string, unknown>;
+  includedPrimaryTypes?: string[];
 }
 
 export function AddressAutocomplete({
@@ -31,6 +34,8 @@ export function AddressAutocomplete({
   error,
   label = "Property Address",
   placeholder = "Start typing an address…",
+  locationBias,
+  includedPrimaryTypes,
 }: AddressAutocompleteProps) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -73,6 +78,8 @@ export function AddressAutocomplete({
         body: JSON.stringify({
           input,
           sessionToken: sessionTokenRef.current,
+          ...(locationBias ? { locationBias } : {}),
+          ...(includedPrimaryTypes?.length ? { includedPrimaryTypes } : {}),
         }),
       });
 
@@ -91,7 +98,7 @@ export function AddressAutocomplete({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locationBias, includedPrimaryTypes]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

@@ -3,16 +3,26 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { OptionTabs } from "@/components/options/OptionTabs";
+import { SearchInfo } from "@/components/deals/SearchInfo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { DISCOUNTING_MODES } from "@/lib/constants";
 
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 interface Deal {
   id: string;
   dealName: string;
-  clientName?: string;
+  clientId?: string | null;
+  clientName?: string | null;
   propertyType?: string;
+  searchLocation?: string | null;
+  searchLocationBounds?: { ne: LatLng; sw: LatLng } | null;
+  targetSF?: number | null;
   options: Array<{ id: string; optionName: string; sortOrder: number; [key: string]: unknown }>;
 }
 
@@ -47,7 +57,7 @@ export default function EditDealPage({
     const firstOpt = deal.options[0] as Record<string, unknown> | undefined;
     const defaults: Record<string, unknown> = {
       optionName: `Option ${String.fromCharCode(65 + idx)}`,
-      rentableSF: 5000,
+      rentableSF: deal.targetSF ?? 5000,
       termMonths: 60,
       baseRentY1: 40,
       escalationType: "FIXED_PERCENT",
@@ -162,6 +172,9 @@ export default function EditDealPage({
         </div>
       )}
 
+      {/* Search Information */}
+      <SearchInfo dealId={dealId} deal={deal} onDealChange={fetchDeal} />
+
       {/* Discounting Mode */}
       <Card padding="sm">
         <div className="flex flex-wrap items-center gap-4">
@@ -203,6 +216,7 @@ export default function EditDealPage({
             options={deal.options}
             onOptionsChange={fetchDeal}
             dealPropertyType={deal.propertyType}
+            searchLocationBounds={deal.searchLocationBounds ?? undefined}
           />
         </Card>
       )}

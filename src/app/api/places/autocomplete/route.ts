@@ -8,9 +8,12 @@ export async function POST(req: Request) {
   if (!userId) return unauthorized();
 
   const body = await req.json();
-  const { input, sessionToken } = body as {
+  const { input, sessionToken, locationBias, includedPrimaryTypes, includedRegionCodes } = body as {
     input?: string;
     sessionToken?: string;
+    locationBias?: Record<string, unknown>;
+    includedPrimaryTypes?: string[];
+    includedRegionCodes?: string[];
   };
 
   if (!input || typeof input !== "string" || input.length < 2) {
@@ -34,6 +37,9 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           input,
           ...(sessionToken ? { sessionToken } : {}),
+          ...(locationBias ? { locationBias } : {}),
+          ...(includedPrimaryTypes?.length ? { includedPrimaryTypes } : {}),
+          ...(includedRegionCodes?.length ? { includedRegionCodes } : {}),
         }),
       }
     );

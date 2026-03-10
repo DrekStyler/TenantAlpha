@@ -36,6 +36,8 @@ export type SurveyMessageInput = z.infer<typeof surveyMessageSchema>;
 
 export const extractedDataSchema = z.object({
   industry: industryTypeSchema.optional(),
+  subSector: z.string().optional(),
+  role: z.string().optional(),
   companyName: z.string().optional(),
   headcount: z.number().int().positive().optional(),
   projectedHeadcount12mo: z.number().int().positive().optional(),

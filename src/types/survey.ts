@@ -149,6 +149,8 @@ export interface SurveyMessage {
 export interface ExtractedSurveyData {
   // General
   industry?: IndustryType;
+  subSector?: string;   // e.g. "Private Practice", "Hospital System", "Health Tech"
+  role?: string;        // e.g. "Managing Physician", "CFO", "Practice Manager"
   companyName?: string;
   headcount?: number;
   projectedHeadcount12mo?: number;

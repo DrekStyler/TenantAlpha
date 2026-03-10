@@ -29,6 +29,8 @@ export function SurveyReview({ data, onConfirm, loading }: SurveyReviewProps) {
         </h4>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
           {data.industry && <Row label="Industry" value={data.industry.replace("_", " / ")} />}
+          {data.subSector && <Row label="Sub-sector" value={data.subSector} />}
+          {data.role && <Row label="Role" value={data.role} />}
           {data.companyName && <Row label="Company" value={data.companyName} />}
           {data.headcount && <Row label="Headcount" value={data.headcount.toString()} />}
           {data.projectedHeadcount12mo && <Row label="Projected (12mo)" value={data.projectedHeadcount12mo.toString()} />}

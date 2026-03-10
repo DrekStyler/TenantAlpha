@@ -171,6 +171,8 @@ ${surveyContext}`;
           const merged = { ...extractedData };
 
           if (extractedFields.industry) merged.industry = extractedFields.industry;
+          if (extractedFields.subSector) merged.subSector = extractedFields.subSector;
+          if (extractedFields.role) merged.role = extractedFields.role;
           if (extractedFields.companyName) merged.companyName = extractedFields.companyName;
           if (extractedFields.headcount) merged.headcount = extractedFields.headcount;
           if (extractedFields.projectedHeadcount12mo) merged.projectedHeadcount12mo = extractedFields.projectedHeadcount12mo;

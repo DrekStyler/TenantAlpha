@@ -1,9 +1,9 @@
-import type { IndustryType, SurveyPhase, ExtractedSurveyData } from "@/types/survey";
+import type { SurveyPhase, ExtractedSurveyData } from "@/types/survey";
 import { INDUSTRY_BENCHMARKS } from "@/engine/roi/benchmarks";
 
 /**
  * System prompt for the AI survey agent.
- * Claude Opus drives the conversation to gather industry-specific ROI data.
+ * Claude Opus drives a dynamic, context-aware interview to gather industry-specific ROI data.
  */
 export const SURVEY_AGENT_SYSTEM_PROMPT = `You are a friendly, professional commercial real estate advisor conducting a business needs assessment. Your goal is to understand the tenant's business, industry, and space requirements so their broker can find the optimal lease.
 
@@ -11,7 +11,7 @@ export const SURVEY_AGENT_SYSTEM_PROMPT = `You are a friendly, professional comm
 - Ask clear, conversational questions — one at a time
 - Be warm but professional. You represent the broker's firm
 - Acknowledge answers briefly before asking the next question
-- Use industry-specific language once you know the industry (e.g., "exam rooms" for medical, "billable hours" for legal)
+- Adapt your vocabulary to match the respondent's role and sub-sector (e.g., "exam rooms" for a physician, "billable hours" for a managing partner, "burn rate" for a startup CTO)
 - If a user says "I don't know" or seems unsure, provide a helpful benchmark and ask if it seems reasonable
 - NEVER mention specific addresses, broker names, or personal identifying information
 
@@ -34,118 +34,287 @@ Rules:
 - Only skip multiple choice for the initial greeting or free-text questions like company name
 - Ask ONE question per message — never combine multiple questions
 
-## CONVERSATION FLOW
+## CONVERSATION STRATEGY
 
-### Phase 1: INDUSTRY_DETECTION
-Start with a warm greeting, then ask about their industry using multiple choice:
+### Phase 1: CLASSIFY (INDUSTRY_DETECTION phase)
+Before asking ANY form-specific questions, identify the respondent's sub-sector and role. This unlocks the correct question path for everything that follows.
 
-**What industry best describes your business?**
+1. First, determine industry (if not already set by broker):
+   Ask which broad industry they're in using multiple choice.
+   Map to: MEDICAL, LEGAL, TECH, FINANCIAL, AEROSPACE_DEFENSE, or GENERAL_OFFICE.
 
-A) Healthcare / Medical
-B) Legal / Law Firm
-C) Technology / Software
-D) Financial Services
-E) Aerospace & Defense
-F) Other (please specify)
+2. Then narrow the sub-sector:
+   "Are you primarily in [sub-sector A], [sub-sector B], or [sub-sector C]?"
+   Example for Medical: "Are you in a clinical setting (hospital, private practice, urgent care) or more on the operational side (health tech, devices, insurance)?"
 
-Map their answer to: MEDICAL, LEGAL, TECH, FINANCIAL, AEROSPACE_DEFENSE, or GENERAL_OFFICE.
+3. Finally, confirm their role:
+   "And what's your role — are you [role A], [role B], or [role C]?"
+   Example: "Are you the practice owner/managing physician, or more in an administrative role like office manager or CFO?"
 
-### Phase 2: INDUSTRY_QUESTIONS
-Once industry is detected, ask industry-specific questions ONE at a time using multiple choice. Use the checklists below for topics. Convert each into a multiple choice question with reasonable options.
+Do NOT proceed to form fields until you have industry, sub-sector, and role context.
+Extract subSector and role via the extract_data tool along with industry.
 
-### Phase 3: LEASE_PREFERENCES
-After industry-specific data, ask about lease preferences:
-- Preferred lease term (3, 5, 7, 10 years?)
-- Budget range or max rent per SF
-- Preferred rent structure (gross, NNN, modified gross) — explain if they seem unfamiliar
-- TI expectations (explain that landlords often contribute to buildout)
-- Free rent expectations
-- Preferred location or submarket
-- Parking needs
+### Phase 2: DYNAMIC FORM COMPLETION (INDUSTRY_QUESTIONS + LEASE_PREFERENCES phases)
+Once classified, generate each next question based on:
+- What form fields are still unfilled (check the FIELDS REMAINING list in the context)
+- What the respondent has already told you (explicitly or implicitly)
+- What is most important to know given their specific sub-sector and role
 
-### Phase 4: REVIEW
-Summarize everything gathered and ask the user to confirm. Present the data clearly in sections.
+Reference prior answers when relevant:
+- "You mentioned you run a multi-location practice — does each location handle billing separately?"
+- "Since you're a 15-person firm focused on litigation, do your attorneys need private offices?"
+
+### Phase 3: REVIEW
+Summarize everything gathered — including any inferred values — and ask the user to confirm.
+Present data clearly in sections. Mark any inferred values with "(estimated)" so the user can correct them.
 Tell them: "Based on your answers, I'll generate a detailed ROI analysis showing how different lease options would impact your business financially. Ready to see your results?"
 
-## TOOL USAGE
-After each user message, use the extract_data tool to report any structured data you parsed from their response. Only include fields that were explicitly stated or clearly implied by the user. Do not guess.
+## FIELD PRIORITY FRAMEWORK
+When deciding which field to ask about next, use this priority order:
 
-## INDUSTRY-SPECIFIC QUESTION CHECKLISTS
+1. **Classifier fields** — sub-sector, role (always first, during INDUSTRY_DETECTION)
+2. **Unlock fields** — fields whose answer determines what other fields are relevant (e.g., headcount unlocks revenue-per-employee, specialty unlocks exam room needs)
+3. **High-value required fields** — headcount, annual revenue, industry-specific core metrics
+4. **Inference candidates** — fields likely answerable from prior context (try to infer, don't ask)
+5. **Low-priority optional fields** — ask last or skip entirely if inferrable
+
+## INFERENCE RULES
+Silently populate fields when the respondent's answers strongly imply values. Do NOT ask redundant questions. Confirm all inferences at the end in the REVIEW summary.
+
+Examples:
+| Signal | Inferred fields |
+|--------|----------------|
+| "I run a solo practice" | headcount ≈ 3-5, subSector = "Solo Practice" |
+| "We're a health system with 12 hospitals" | subSector = "Hospital System", headcount = enterprise-scale |
+| "We use Epic" | tech maturity = high (for medical) |
+| "We're a 15-attorney firm" | headcount ≈ 25-30 (attorneys + support staff) |
+| "I'm the managing partner" | role = "Managing Partner", decision maker = yes |
+| "We're pre-revenue" | annualRevenue ≈ 0, stage = early |
+| Role = "CFO" or "Office Manager" | Financial focus = yes, not clinical/technical |
+| "We have 8 providers" | For medical: headcount ≈ 20-25 (providers + support staff ratio ~1:2) |
+| "40% of our team is remote" | hybridWorkPercent = 40 (for tech) |
+
+When you infer a value, include it in your extract_data tool call. In the REVIEW phase, clearly label inferred values so the user can correct them.
+
+## INDUSTRY TAXONOMY
 
 ### MEDICAL
-- How many providers (doctors/NPs/PAs) do you have?
-- How many exam rooms do you need?
-- What's your specialty? (primary care, specialist, surgical, dental, mental health)
-- How many patients does each provider see per day?
-- What's your average reimbursement per visit?
-- What's your payer mix? (% Medicare, Medicaid, commercial, self-pay)
-- What's your current patient cycle time (check-in to checkout, in minutes)?
-- How well-utilized are your current exam rooms? (percentage)
-- Do you need proximity to a hospital or surgery center?
-- Any specialized equipment or power/HVAC requirements?
+Sub-sectors: Hospital Systems, Private Practice (Solo/Group), Urgent Care, Ambulatory Surgery Centers, Behavioral Health, Telehealth, Medical Devices, Pharma
+Common roles: Physician, Surgeon, Practice Manager, Hospital Administrator, CTO/CMIO, CFO, Nurse Practitioner, Office Manager
+Pain points: HIPAA compliance, billing & reimbursement, EHR integration, prior authorization, staff retention, care coordination, exam room utilization
+Key terminology: EMR/EHR, CPT codes, ICD-10, prior auth, credentialing, value-based care, FQHC, ACO, payer mix
+Regulatory context: HIPAA, CMS, MACRA/MIPS, Joint Commission, state licensing boards
+Key form fields: providers, examRooms, specialtyType, visitsPerProviderDay, reimbursementPerVisit, payerMix, cycleTimeMinutes, currentExamRoomUtilization
 
 ### LEGAL
-- How many partners, associates, and paralegals are in the firm?
-- What are your practice areas? (litigation, corporate, IP, family, etc.)
-- What's your target billable hours per attorney per year?
-- What's your current realization rate? (% of billed hours collected)
-- What's your blended billing rate? (average $/hour across the firm)
-- Do you need proximity to courts?
-- How many deposition or conference rooms do you need?
-- Do attorneys need private offices? (most law firms require this)
-- Any specialized technology needs? (e-discovery, video conferencing for depositions)
-
-### AEROSPACE_DEFENSE
-- Do you need a SCIF (Sensitive Compartmented Information Facility)?
-- Do you need a SAPF (Special Access Program Facility)?
-- Is your facility currently cleared? What clearance level?
-- Are you ITAR compliant? What's your CMMC level (1-5)?
-- What are your power requirements (KW)?
-- What ceiling height and floor load capacity do you need?
-- Do you need prototyping or light manufacturing capability?
-- Which prime contractors do you work with? (Lockheed, Raytheon, Northrop, Boeing, etc.)
-- Proximity to any military bases, test ranges, or government facilities?
-- Do you need secure document storage?
+Sub-sectors: BigLaw, Mid-size Firm, Boutique/Specialty, Solo Practice, In-house Legal, Legal Tech, Government/Public Interest
+Common roles: Managing Partner, Associate, Of Counsel, Practice Group Leader, COO/CFO, Office Manager, IT Director
+Pain points: Billable hour pressure, talent retention, tech adoption, real estate costs per attorney, hybrid work policies
+Key terminology: Billable hours, realization rate, RPL, PPP, Am Law rankings, practice areas, matter management
+Regulatory context: State bar requirements, client confidentiality, trust accounting, conflict checks
+Key form fields: partners, associates, paralegals, adminStaff, practiceAreas, billableHourTarget, realizationRate, blendedBillingRate, courtProximityRequired, depositionRoomsNeeded
 
 ### TECH
-- How many engineers / technical staff do you have?
-- How many product teams?
-- What's your deployment frequency? (daily, weekly, monthly)
-- What percentage of your workforce works remotely / hybrid?
-- Do you need a server room or dedicated data infrastructure?
-- How many collaboration zones or team areas do you want?
-- What's the average engineer salary? (for ROI calculations)
+Sub-sectors: SaaS, Enterprise Software, AI/ML, Fintech, Healthtech, Cybersecurity, Hardware, Dev Tools, E-commerce, Gaming
+Common roles: CEO/CTO, VP Engineering, Head of Product, HR/People Ops, Facilities Manager, Office Manager
+Pain points: Hybrid/remote workforce, recruiting, rapid scaling, burn rate, culture/collaboration
+Key terminology: ARR, MRR, burn rate, headcount plan, sprint teams, stand-ups, collaboration zones
+Regulatory context: SOC 2, GDPR, data residency, CCPA
+Key form fields: engineers, productTeams, deploymentFrequency, hybridWorkPercent, serverRoomRequired, collaborationZonesNeeded, avgEngineerSalary
 
 ### FINANCIAL
-- How many financial advisors / relationship managers?
-- What's your total AUM (assets under management)?
-- How many client meetings per week?
-- What's your regulatory level? (basic, SEC registered, FINRA, banking)
-- Is this a branch office?
-- Do you need vault or secure document storage?
-- What's the average revenue per advisor?
+Sub-sectors: Wealth Management/RIA, Investment Banking, Insurance, Hedge Fund, Private Equity, Retail Banking, Accounting (CPA)
+Common roles: Managing Director, Financial Advisor, Portfolio Manager, Compliance Officer, Branch Manager, CFO, COO
+Pain points: Regulatory compliance, client confidentiality, prestige/image, meeting room demand, secure storage
+Key terminology: AUM, fiduciary, SEC/FINRA, compliance audit, client-facing, book of business
+Regulatory context: SEC, FINRA, OCC, state insurance regulations, SOX, anti-money laundering
+Key form fields: advisors, aum, clientMeetingsPerWeek, complianceLevel, branchOffice, vaultRequired, avgAdvisorRevenue
 
-### GENERAL_OFFICE (for any industry)
-- How many total employees?
-- What's your projected headcount in 12 months?
-- What's your annual revenue?
-- Revenue per employee?
-- Expected annual revenue growth?
-- How much space per employee do you prefer? (typical: 150-250 SF)
-- What's your monthly budget constraint?
-- What amenities are critical? (parking, transit, fitness, conference rooms, etc.)
-- When do you need to move? (immediately, 6 months, 12 months, etc.)
-- What's your primary goal? (minimize cost, maximize growth, attract talent, improve location, expand)
+### AEROSPACE_DEFENSE
+Sub-sectors: Defense Contractor (Prime/Sub), Space, UAV/Drone, Satellite, Intelligence, Cybersecurity, R&D Lab
+Common roles: Program Manager, Chief Engineer, FSO (Facility Security Officer), ISSM, VP Operations, Contracts Manager
+Pain points: SCIF/SAPF requirements, clearance levels, CMMC compliance, proximity to primes/bases, power/HVAC
+Key terminology: SCIF, SAPF, ITAR, CMMC, DD-254, FSO, T-SCIF, TEMPEST, collateral classified, SCI
+Regulatory context: NISPOM, ITAR/EAR, CMMC 2.0, DoD facility clearance, DCSA
+Key form fields: scifRequired, sapfRequired, facilityCleared, clearanceLevel, itarCompliant, cmmcLevel, powerRequirementKW, ceilingHeightFt, floorLoadPSF, prototypeCapability, secureStorageRequired
+
+### GENERAL_OFFICE
+Sub-sectors: Consulting, Real Estate, Media & Advertising, Architecture & Design, Nonprofit, Government, Professional Services, Marketing Agency, HR/Staffing
+Common roles: CEO/President, COO, Office Manager, Facilities Director, HR Director, CFO
+Pain points: Lease costs, employee satisfaction, hybrid work, growth uncertainty, location accessibility
+Key terminology: Headcount, FTE, hybrid policy, hoteling, occupancy rate
+Regulatory context: Varies by sub-sector (ADA, local zoning, fire code)
+Key form fields: (uses only the common fields — headcount, revenue, sfPerEmployee, etc.)
+
+## ANTI-PATTERNS — AVOID THESE
+- ❌ Asking the same field twice in different words
+- ❌ Using jargon the respondent hasn't used themselves (match THEIR vocabulary)
+- ❌ Asking a broad question when a specific one is possible
+- ❌ Front-loading with "Before we begin, I'll need to ask you about..."
+- ❌ Confirming every single inference mid-conversation (batch at the end in REVIEW)
+- ❌ Asking optional fields before required ones are complete
+- ❌ Re-asking about industry if the broker already set it
+
+## TOOL USAGE
+After each user message, use the extract_data tool to report any structured data you parsed from their response.
+- Include fields that were explicitly stated OR clearly implied
+- Include inferred values when confidence is high
+- Set the phase field when transitioning between phases
+- Set subSector and role as soon as you identify them
+- Maximum 15 questions total to keep the survey efficient
 
 ## IMPORTANT RULES
-- Ask about current lease situation (current rent, pain points) to enable cost avoidance analysis
+- Ask about current lease situation (current rent, escalation, pain points) to enable cost avoidance analysis
 - Be concise — no paragraph-long explanations unless the user asks
 - If the user provides numbers, acknowledge them and reference industry benchmarks for context
 - Transition smoothly between phases
-- Maximum 15 questions total to keep the survey efficient`;
+- When enough required fields are gathered, move to the next phase — don't exhaustively ask every optional field`;
+
+// ─── Field definitions for tracking ─────────────────────────────
+
+interface FieldDef {
+  key: string;
+  label: string;
+  priority: "required" | "inferrable" | "optional";
+  /** Dot-path into ExtractedSurveyData (e.g. "industryInputs.providers") */
+  path: string;
+}
+
+const COMMON_FIELDS: FieldDef[] = [
+  { key: "headcount", label: "Total headcount", priority: "required", path: "headcount" },
+  { key: "annualRevenue", label: "Annual revenue", priority: "required", path: "annualRevenue" },
+  { key: "primaryGoal", label: "Primary business goal", priority: "required", path: "primaryGoal" },
+  { key: "expansionTimeline", label: "Move-in timeline", priority: "required", path: "expansionTimeline" },
+  { key: "criticalAmenities", label: "Critical amenities", priority: "required", path: "criticalAmenities" },
+  { key: "projectedHeadcount12mo", label: "Projected headcount (12 months)", priority: "inferrable", path: "projectedHeadcount12mo" },
+  { key: "revenuePerEmployee", label: "Revenue per employee", priority: "inferrable", path: "revenuePerEmployee" },
+  { key: "projectedRevenueGrowth", label: "Projected revenue growth %", priority: "optional", path: "projectedRevenueGrowth" },
+  { key: "sfPerEmployee", label: "Space per employee (SF)", priority: "inferrable", path: "sfPerEmployee" },
+  { key: "budgetConstraint", label: "Monthly budget constraint", priority: "optional", path: "budgetConstraint" },
+  { key: "avgEmployeeSalary", label: "Average employee salary", priority: "inferrable", path: "avgEmployeeSalary" },
+  { key: "currentEmployeeTurnover", label: "Current employee turnover %", priority: "optional", path: "currentEmployeeTurnover" },
+];
+
+const LEASE_FIELDS: FieldDef[] = [
+  { key: "preferredTerm", label: "Preferred lease term", priority: "required", path: "leasePreferences.preferredTerm" },
+  { key: "preferredRentStructure", label: "Rent structure (Gross/NNN/Modified)", priority: "required", path: "leasePreferences.preferredRentStructure" },
+  { key: "maxBaseRent", label: "Max base rent ($/SF/yr)", priority: "required", path: "leasePreferences.maxBaseRent" },
+  { key: "tiExpectation", label: "TI allowance expectation", priority: "optional", path: "leasePreferences.tiExpectation" },
+  { key: "freeRentExpectation", label: "Free rent expectation (months)", priority: "optional", path: "leasePreferences.freeRentExpectation" },
+  { key: "preferredLocation", label: "Preferred location", priority: "optional", path: "leasePreferences.preferredLocation" },
+  { key: "parkingNeeded", label: "Parking spaces needed", priority: "optional", path: "leasePreferences.parkingNeeded" },
+];
+
+const CURRENT_LEASE_FIELDS: FieldDef[] = [
+  { key: "currentRent", label: "Current rent ($/SF/yr)", priority: "required", path: "currentLease.currentRent" },
+  { key: "currentEscalation", label: "Current annual escalation %", priority: "inferrable", path: "currentLease.currentEscalation" },
+  { key: "painPoints", label: "Current lease pain points", priority: "optional", path: "currentLease.painPoints" },
+];
+
+const INDUSTRY_FIELDS: Record<string, FieldDef[]> = {
+  MEDICAL: [
+    { key: "providers", label: "Number of providers", priority: "required", path: "industryInputs.providers" },
+    { key: "examRooms", label: "Exam rooms needed", priority: "required", path: "industryInputs.examRooms" },
+    { key: "specialtyType", label: "Practice specialty", priority: "required", path: "industryInputs.specialtyType" },
+    { key: "visitsPerProviderDay", label: "Patient visits per provider/day", priority: "inferrable", path: "industryInputs.visitsPerProviderDay" },
+    { key: "reimbursementPerVisit", label: "Avg reimbursement per visit", priority: "inferrable", path: "industryInputs.reimbursementPerVisit" },
+    { key: "payerMix", label: "Payer mix breakdown", priority: "optional", path: "industryInputs.payerMix" },
+    { key: "cycleTimeMinutes", label: "Patient cycle time (minutes)", priority: "optional", path: "industryInputs.cycleTimeMinutes" },
+    { key: "currentExamRoomUtilization", label: "Exam room utilization %", priority: "optional", path: "industryInputs.currentExamRoomUtilization" },
+  ],
+  LEGAL: [
+    { key: "partners", label: "Number of partners", priority: "required", path: "industryInputs.partners" },
+    { key: "associates", label: "Number of associates", priority: "required", path: "industryInputs.associates" },
+    { key: "paralegals", label: "Number of paralegals", priority: "inferrable", path: "industryInputs.paralegals" },
+    { key: "practiceAreas", label: "Practice areas", priority: "required", path: "industryInputs.practiceAreas" },
+    { key: "billableHourTarget", label: "Billable hour target/attorney/year", priority: "inferrable", path: "industryInputs.billableHourTarget" },
+    { key: "realizationRate", label: "Realization rate %", priority: "inferrable", path: "industryInputs.realizationRate" },
+    { key: "blendedBillingRate", label: "Blended billing rate ($/hr)", priority: "inferrable", path: "industryInputs.blendedBillingRate" },
+    { key: "courtProximityRequired", label: "Court proximity needed", priority: "optional", path: "industryInputs.courtProximityRequired" },
+    { key: "depositionRoomsNeeded", label: "Deposition rooms needed", priority: "optional", path: "industryInputs.depositionRoomsNeeded" },
+  ],
+  TECH: [
+    { key: "engineers", label: "Number of engineers", priority: "required", path: "industryInputs.engineers" },
+    { key: "productTeams", label: "Number of product teams", priority: "inferrable", path: "industryInputs.productTeams" },
+    { key: "hybridWorkPercent", label: "Hybrid/remote workforce %", priority: "required", path: "industryInputs.hybridWorkPercent" },
+    { key: "deploymentFrequency", label: "Deployment frequency", priority: "optional", path: "industryInputs.deploymentFrequency" },
+    { key: "serverRoomRequired", label: "Server room needed", priority: "optional", path: "industryInputs.serverRoomRequired" },
+    { key: "collaborationZonesNeeded", label: "Collaboration zones needed", priority: "optional", path: "industryInputs.collaborationZonesNeeded" },
+    { key: "avgEngineerSalary", label: "Avg engineer salary", priority: "inferrable", path: "industryInputs.avgEngineerSalary" },
+  ],
+  FINANCIAL: [
+    { key: "advisors", label: "Number of advisors", priority: "required", path: "industryInputs.advisors" },
+    { key: "aum", label: "Assets under management", priority: "required", path: "industryInputs.aum" },
+    { key: "clientMeetingsPerWeek", label: "Client meetings per week", priority: "inferrable", path: "industryInputs.clientMeetingsPerWeek" },
+    { key: "complianceLevel", label: "Regulatory/compliance level", priority: "required", path: "industryInputs.complianceLevel" },
+    { key: "branchOffice", label: "Is this a branch office", priority: "optional", path: "industryInputs.branchOffice" },
+    { key: "vaultRequired", label: "Vault/secure storage needed", priority: "optional", path: "industryInputs.vaultRequired" },
+    { key: "avgAdvisorRevenue", label: "Avg revenue per advisor", priority: "inferrable", path: "industryInputs.avgAdvisorRevenue" },
+  ],
+  AEROSPACE_DEFENSE: [
+    { key: "scifRequired", label: "SCIF required", priority: "required", path: "industryInputs.scifRequired" },
+    { key: "facilityCleared", label: "Facility currently cleared", priority: "required", path: "industryInputs.facilityCleared" },
+    { key: "clearanceLevel", label: "Clearance level", priority: "required", path: "industryInputs.clearanceLevel" },
+    { key: "itarCompliant", label: "ITAR compliant", priority: "required", path: "industryInputs.itarCompliant" },
+    { key: "cmmcLevel", label: "CMMC level (1-5)", priority: "required", path: "industryInputs.cmmcLevel" },
+    { key: "powerRequirementKW", label: "Power requirements (KW)", priority: "inferrable", path: "industryInputs.powerRequirementKW" },
+    { key: "ceilingHeightFt", label: "Ceiling height (ft)", priority: "inferrable", path: "industryInputs.ceilingHeightFt" },
+    { key: "sapfRequired", label: "SAPF required", priority: "optional", path: "industryInputs.sapfRequired" },
+    { key: "prototypeCapability", label: "Prototyping capability needed", priority: "optional", path: "industryInputs.prototypeCapability" },
+    { key: "secureStorageRequired", label: "Secure storage needed", priority: "optional", path: "industryInputs.secureStorageRequired" },
+  ],
+  GENERAL_OFFICE: [],
+};
+
+// ─── Helpers ────────────────────────────────────────────────────
+
+/** Resolve a dot-path (e.g. "industryInputs.providers") against ExtractedSurveyData */
+function getNestedValue(data: ExtractedSurveyData, path: string): unknown {
+  const parts = path.split(".");
+  let current: unknown = data;
+  for (const p of parts) {
+    if (current == null || typeof current !== "object") return undefined;
+    current = (current as Record<string, unknown>)[p];
+  }
+  return current;
+}
+
+/** Check if a field has been filled */
+function isFieldFilled(data: ExtractedSurveyData, path: string): boolean {
+  const val = getNestedValue(data, path);
+  if (val === undefined || val === null) return false;
+  if (Array.isArray(val)) return val.length > 0;
+  if (typeof val === "string") return val.length > 0;
+  return true;
+}
+
+/** Get fields for the current phase and industry */
+function getFieldsForPhase(
+  phase: SurveyPhase,
+  industry: string | undefined
+): FieldDef[] {
+  switch (phase) {
+    case "INDUSTRY_DETECTION":
+      return []; // Classification phase, no form fields
+    case "INDUSTRY_QUESTIONS": {
+      const industrySpecific = INDUSTRY_FIELDS[industry ?? "GENERAL_OFFICE"] ?? [];
+      return [...COMMON_FIELDS, ...industrySpecific, ...CURRENT_LEASE_FIELDS];
+    }
+    case "LEASE_PREFERENCES":
+      return LEASE_FIELDS;
+    case "REVIEW":
+    case "COMPLETED":
+      return [];
+    default:
+      return [];
+  }
+}
+
+// ─── Context Builder ────────────────────────────────────────────
 
 /**
  * Build the dynamic context sent with each survey message.
+ * Includes conversation state tracking, field completion status, and benchmarks.
  */
 export function buildSurveyContext(
   phase: SurveyPhase,
@@ -155,88 +324,98 @@ export function buildSurveyContext(
 ): string {
   const parts: string[] = [];
 
+  // ── Current State ──
   parts.push(`## CURRENT STATE`);
   parts.push(`- Client name: ${clientName}`);
   parts.push(`- Current phase: ${phase}`);
+  parts.push(`- Sub-sector identified: ${extractedData.subSector ?? "not yet"}`);
+  parts.push(`- Role identified: ${extractedData.role ?? "not yet"}`);
 
   if (brokerSetIndustry) {
     parts.push(`- Broker-confirmed industry: ${brokerSetIndustry} (mapped to ${extractedData.industry})`);
-    parts.push(`- NOTE: The broker has already identified this client's industry. Do NOT re-ask about their industry. Jump straight into industry-specific questions.`);
+    parts.push(`- NOTE: The broker has already identified this client's industry. Do NOT re-ask about their industry. Still ask about sub-sector and role to classify properly, then jump into industry-specific questions.`);
   } else if (extractedData.industry) {
     parts.push(`- Detected industry: ${extractedData.industry}`);
   }
 
-  // Show what's been gathered
-  const gathered: string[] = [];
-  if (extractedData.headcount) gathered.push(`Headcount: ${extractedData.headcount}`);
-  if (extractedData.projectedHeadcount12mo) gathered.push(`Projected headcount: ${extractedData.projectedHeadcount12mo}`);
-  if (extractedData.annualRevenue) gathered.push(`Annual revenue: $${extractedData.annualRevenue.toLocaleString()}`);
-  if (extractedData.revenuePerEmployee) gathered.push(`Rev/employee: $${extractedData.revenuePerEmployee.toLocaleString()}`);
-  if (extractedData.sfPerEmployee) gathered.push(`SF/employee: ${extractedData.sfPerEmployee}`);
-  if (extractedData.budgetConstraint) gathered.push(`Budget: $${extractedData.budgetConstraint.toLocaleString()}/mo`);
-  if (extractedData.primaryGoal) gathered.push(`Goal: ${extractedData.primaryGoal}`);
-  if (extractedData.expansionTimeline) gathered.push(`Timeline: ${extractedData.expansionTimeline}`);
-  if (extractedData.criticalAmenities?.length) gathered.push(`Amenities: ${extractedData.criticalAmenities.join(", ")}`);
+  // ── Fields Completed ──
+  const allFields = [
+    ...COMMON_FIELDS,
+    ...LEASE_FIELDS,
+    ...CURRENT_LEASE_FIELDS,
+    ...(INDUSTRY_FIELDS[extractedData.industry ?? "GENERAL_OFFICE"] ?? []),
+  ];
 
-  if (gathered.length > 0) {
-    parts.push(`\n## DATA GATHERED SO FAR`);
-    gathered.forEach((g) => parts.push(`- ${g}`));
-  }
+  const completed = allFields.filter((f) => isFieldFilled(extractedData, f.path));
+  const remaining = allFields.filter((f) => !isFieldFilled(extractedData, f.path));
 
-  // Industry inputs
-  if (extractedData.industryInputs && Object.keys(extractedData.industryInputs).length > 0) {
-    parts.push(`\n## INDUSTRY-SPECIFIC DATA`);
-    for (const [key, value] of Object.entries(extractedData.industryInputs)) {
-      parts.push(`- ${key}: ${JSON.stringify(value)}`);
+  if (completed.length > 0) {
+    parts.push(`\n## FIELDS COMPLETED (${completed.length})`);
+    for (const f of completed) {
+      const val = getNestedValue(extractedData, f.path);
+      const display = Array.isArray(val) ? val.join(", ") : String(val);
+      parts.push(`- ${f.label}: ${display}`);
     }
   }
 
-  // Lease preferences
-  if (extractedData.leasePreferences) {
-    parts.push(`\n## LEASE PREFERENCES`);
-    const lp = extractedData.leasePreferences;
-    if (lp.preferredTerm) parts.push(`- Term: ${lp.preferredTerm} months`);
-    if (lp.preferredRentStructure) parts.push(`- Structure: ${lp.preferredRentStructure}`);
-    if (lp.maxBaseRent) parts.push(`- Max rent: $${lp.maxBaseRent}/SF/yr`);
-    if (lp.tiExpectation) parts.push(`- TI expectation: $${lp.tiExpectation.toLocaleString()}`);
-    if (lp.freeRentExpectation) parts.push(`- Free rent: ${lp.freeRentExpectation} months`);
+  // ── Fields Remaining (prioritized for current phase) ──
+  const phaseFields = getFieldsForPhase(phase, extractedData.industry);
+  const phaseRemaining = phaseFields.filter((f) => !isFieldFilled(extractedData, f.path));
+
+  if (phaseRemaining.length > 0) {
+    // Sort: required first, then inferrable, then optional
+    const priorityOrder = { required: 0, inferrable: 1, optional: 2 };
+    const sorted = [...phaseRemaining].sort(
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+    );
+
+    parts.push(`\n## FIELDS REMAINING — ${phase} (${sorted.length})`);
+    parts.push(`Generate the single best next question targeting the highest-priority incomplete field.`);
+    for (const f of sorted) {
+      const tag = f.priority === "required" ? "[REQUIRED]" : f.priority === "inferrable" ? "[INFERRABLE]" : "[OPTIONAL]";
+      parts.push(`${tag} ${f.label} (${f.path})`);
+    }
   }
 
-  // Current lease
-  if (extractedData.currentLease) {
-    parts.push(`\n## CURRENT LEASE`);
-    const cl = extractedData.currentLease;
-    if (cl.currentRent) parts.push(`- Current rent: $${cl.currentRent}/SF/yr`);
-    if (cl.currentEscalation) parts.push(`- Escalation: ${cl.currentEscalation}%`);
-    if (cl.currentSF) parts.push(`- Current SF: ${cl.currentSF.toLocaleString()}`);
-    if (cl.painPoints?.length) parts.push(`- Pain points: ${cl.painPoints.join(", ")}`);
-  }
-
-  // Remaining questions guidance
+  // ── Phase Instructions ──
   parts.push(`\n## PHASE INSTRUCTIONS`);
   switch (phase) {
     case "INDUSTRY_DETECTION":
-      parts.push("Ask about the user's business and determine their industry. Once clear, use extract_data with industry set and transition to INDUSTRY_QUESTIONS.");
+      if (!extractedData.industry) {
+        parts.push("Determine the user's industry. Once identified, also ask about their sub-sector and role before transitioning.");
+      }
+      if (extractedData.industry && !extractedData.subSector) {
+        parts.push("Industry is known. Ask about their specific sub-sector within that industry.");
+      }
+      if (extractedData.industry && extractedData.subSector && !extractedData.role) {
+        parts.push("Industry and sub-sector are known. Ask about their role/title.");
+      }
+      if (extractedData.industry && extractedData.subSector && extractedData.role) {
+        parts.push("Classification complete! Use extract_data to set phase to INDUSTRY_QUESTIONS and proceed.");
+      }
       break;
     case "INDUSTRY_QUESTIONS":
-      parts.push("Ask industry-specific questions from the checklist. Also ask about current lease situation. Once you have enough data, transition to LEASE_PREFERENCES.");
+      parts.push("Ask about business details and current lease. Target the highest-priority remaining field.");
+      parts.push("Use prior answers to infer fields when possible — don't ask what you can derive.");
+      parts.push("When all [REQUIRED] fields are gathered (or enough for a solid analysis), transition to LEASE_PREFERENCES.");
       break;
     case "LEASE_PREFERENCES":
-      parts.push("Ask about lease term, budget, rent structure, TI, free rent, location, parking. Once gathered, transition to REVIEW.");
+      parts.push("Ask about lease term, rent structure, and budget. Most tenants aren't CRE experts — explain concepts briefly if needed.");
+      parts.push("When core lease preferences are gathered, transition to REVIEW.");
       break;
     case "REVIEW":
-      parts.push("Summarize all gathered data clearly and ask user to confirm. When they confirm, transition to COMPLETED.");
+      parts.push("Summarize ALL gathered data clearly in sections. Mark any inferred values with '(estimated)'. Ask the user to confirm or correct anything. When they confirm, transition to COMPLETED.");
       break;
     case "COMPLETED":
       parts.push("Survey is complete. Thank the user and let them know their ROI analysis is being generated.");
       break;
   }
 
-  // Provide relevant benchmarks if industry is known
+  // ── Industry Benchmarks ──
   if (extractedData.industry) {
     const benchmarks = INDUSTRY_BENCHMARKS[extractedData.industry as keyof typeof INDUSTRY_BENCHMARKS];
     if (benchmarks) {
-      parts.push(`\n## INDUSTRY BENCHMARKS (use these to validate answers and provide context)`);
+      parts.push(`\n## INDUSTRY BENCHMARKS (use to validate answers, provide context, and infer values)`);
       for (const [key, value] of Object.entries(benchmarks)) {
         if (typeof value === "number") {
           parts.push(`- ${key}: ${value.toLocaleString()}`);

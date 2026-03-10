@@ -165,13 +165,6 @@ export default function EditDealPage({
         </div>
       )}
 
-      {/* Options hint */}
-      {deal.options.length < 2 && (
-        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
-          Add at least 2 lease options to enable ROI calculation.
-        </div>
-      )}
-
       {/* Search Information */}
       <SearchInfo dealId={dealId} deal={deal} onDealChange={fetchDeal} />
 
@@ -196,30 +189,15 @@ export default function EditDealPage({
       </Card>
 
       {/* Option Forms */}
-      {deal.options.length === 0 ? (
-        <Card>
-          <div className="py-8 text-center">
-            <p className="text-navy-500">No options yet.</p>
-            <Button
-              className="mt-4"
-              onClick={handleAddOption}
-              loading={addingOption}
-            >
-              + Add First Option
-            </Button>
-          </div>
-        </Card>
-      ) : (
-        <Card>
-          <OptionTabs
-            dealId={dealId}
-            options={deal.options}
-            onOptionsChange={fetchDeal}
-            dealPropertyType={deal.propertyType}
-            searchLocationBounds={deal.searchLocationBounds ?? undefined}
-          />
-        </Card>
-      )}
+      <Card>
+        <OptionTabs
+          dealId={dealId}
+          options={deal.options}
+          onOptionsChange={fetchDeal}
+          dealPropertyType={deal.propertyType}
+          searchLocationBounds={deal.searchLocationBounds ?? undefined}
+        />
+      </Card>
 
       {/* Bottom Calculate */}
       <div className="flex justify-end">

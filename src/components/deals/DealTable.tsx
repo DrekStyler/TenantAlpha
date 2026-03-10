@@ -18,6 +18,7 @@ export interface DealRow {
   propertyType: string;
   status: DealStatus;
   stage: DealStage;
+  sourceType?: string;
   updatedAt: string;
   _count: { options: number };
   options: { rentableSF: number }[];
@@ -525,6 +526,16 @@ export function DealTable({ deals, onDelete, onUpdate }: DealTableProps) {
                 {/* Actions */}
                 <td className="px-4 py-3.5 pr-5 text-right">
                   <div className="flex items-center justify-end gap-1.5">
+                    {deal.sourceType === "AI_SURVEY" &&
+                      (deal.status === "CALCULATED" || deal.status === "EXPORTED") && (
+                        <Link
+                          href={`/deals/${deal.id}/results?tab=roi`}
+                          className="rounded-md px-2.5 py-1.5 text-xs font-medium text-gold-700 transition-colors hover:bg-gold-50 hover:text-gold-900"
+                          title="View ROI Analysis"
+                        >
+                          ROI
+                        </Link>
+                      )}
                     <Link
                       href={href}
                       className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"

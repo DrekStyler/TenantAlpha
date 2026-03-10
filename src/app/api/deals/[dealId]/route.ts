@@ -7,7 +7,17 @@ import { ok, unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
 async function getDealOwned(dealId: string, userId: string) {
   const deal = await prisma.deal.findUnique({
     where: { id: dealId },
-    include: { options: { orderBy: { sortOrder: "asc" } }, aiSummary: true },
+    include: {
+      options: { orderBy: { sortOrder: "asc" } },
+      aiSummary: true,
+      client: {
+        include: {
+          industryProfile: {
+            select: { industryType: true, roiOutputs: true },
+          },
+        },
+      },
+    },
   });
   if (!deal) return null;
   if (deal.userId !== userId) return "forbidden";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +22,7 @@ export function DealSetupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const targetSFRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/clients")
@@ -57,10 +58,18 @@ export function DealSetupForm() {
     setLoading(true);
     setError("");
     try {
+      // Include targetSF from the uncontrolled input
+      const targetSFValue = targetSFRef.current?.value;
+      const targetSF = targetSFValue ? parseInt(targetSFValue, 10) : undefined;
+      const payload = {
+        ...data,
+        ...(targetSF && !isNaN(targetSF) && targetSF > 0 ? { targetSF } : {}),
+      };
+
       const res = await fetch("/api/deals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(await res.text());
       const deal = await res.json();
@@ -120,6 +129,13 @@ export function DealSetupForm() {
             }))}
             error={errors.propertyType?.message}
             {...register("propertyType")}
+          />
+          <Input
+            ref={targetSFRef}
+            label="Target Square Footage"
+            placeholder="e.g. 5000"
+            type="number"
+            hint="Used to size initial lease options"
           />
 
           {error && (

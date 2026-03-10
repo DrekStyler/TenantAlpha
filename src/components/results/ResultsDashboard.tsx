@@ -21,6 +21,7 @@ interface ResultsDashboardProps {
   results: ComparisonResult;
   roiOutputs?: ROIOutputs | null;
   industryType?: string | null;
+  initialTab?: Tab;
 }
 
 function buildTabs(hasROI: boolean) {
@@ -33,9 +34,10 @@ function buildTabs(hasROI: boolean) {
 
 type Tab = "Summary" | "Cash Flows" | "Comparison" | "ROI Analysis" | "AI Assistant" | "Location";
 
-export function ResultsDashboard({ dealId, dealName, results, roiOutputs, industryType }: ResultsDashboardProps) {
+export function ResultsDashboard({ dealId, dealName, results, roiOutputs, industryType, initialTab }: ResultsDashboardProps) {
   const TABS = buildTabs(!!roiOutputs);
-  const [activeTab, setActiveTab] = useState<Tab>("Summary");
+  const resolvedInitial = initialTab && (TABS as readonly string[]).includes(initialTab) ? initialTab : "Summary";
+  const [activeTab, setActiveTab] = useState<Tab>(resolvedInitial);
 
   return (
     <div className="space-y-8">

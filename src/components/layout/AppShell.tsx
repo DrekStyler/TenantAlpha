@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 
 const navItems = [
-  { href: "/roi", label: "ROI Analysis", icon: "chart" },
   { href: "/dashboard", label: "Dashboard", icon: "grid" },
   { href: "/leases", label: "Leases", icon: "file" },
   { href: "/profile", label: "Profile", icon: "user" },

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ComparisonResult } from "@/engine/types";
+import type { ROIOutputs } from "@/types/survey";
 import { ResultsDashboard } from "@/components/results/ResultsDashboard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -14,6 +15,12 @@ interface Deal {
   id: string;
   dealName: string;
   clientName?: string;
+  client?: {
+    industryProfile?: {
+      industryType: string;
+      roiOutputs: unknown;
+    } | null;
+  } | null;
 }
 
 export default function ResultsPage({
@@ -23,6 +30,8 @@ export default function ResultsPage({
 }) {
   const { dealId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const [results, setResults] = useState<ComparisonResult | null>(null);
   const [deal, setDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,6 +169,9 @@ export default function ResultsPage({
           dealId={dealId}
           dealName={deal?.dealName ?? "Lease Analysis"}
           results={results}
+          roiOutputs={(deal?.client?.industryProfile?.roiOutputs as ROIOutputs) ?? undefined}
+          industryType={deal?.client?.industryProfile?.industryType ?? undefined}
+          initialTab={tabParam === "roi" ? "ROI Analysis" : undefined}
         />
       ) : (
         <div className="rounded-xl border border-navy-100 bg-white p-8 text-center">

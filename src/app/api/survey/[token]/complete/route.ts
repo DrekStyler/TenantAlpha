@@ -126,6 +126,8 @@ export async function POST(
     }
 
     console.error("[survey/complete] Error creating deal:", e);
+    console.error("[survey/complete] Client:", client.id, "User:", client.userId, "Industry:", data.industry);
+    console.error("[survey/complete] Extracted data:", JSON.stringify(data, null, 2));
     return err("Failed to generate ROI analysis. Please try again.", 500);
   }
 }

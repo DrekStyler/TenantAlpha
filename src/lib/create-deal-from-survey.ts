@@ -4,6 +4,39 @@ import type { CostAvoidanceInput, ProductivityInput, StrategicInput, CapitalInpu
 import type { IndustryType, ROIOutputs } from "@/types/survey";
 import { INDUSTRY_BENCHMARKS } from "@/engine/roi/benchmarks";
 
+// ─── Enum Validators ─────────────────────────────────────────────
+
+const VALID_PROPERTY_TYPES = new Set(["OFFICE", "RETAIL", "INDUSTRIAL", "FLEX", "OTHER"]);
+const VALID_RENT_STRUCTURES = new Set(["GROSS", "NNN", "MODIFIED_GROSS"]);
+const VALID_INDUSTRY_TYPES = new Set(["MEDICAL", "LEGAL", "AEROSPACE_DEFENSE", "TECH", "FINANCIAL", "GENERAL_OFFICE"]);
+
+function normalizePropertyType(value: string | undefined): "OFFICE" | "RETAIL" | "INDUSTRIAL" | "FLEX" | "OTHER" {
+  if (!value) return "OFFICE";
+  const upper = value.toUpperCase().replace(/[\s-]+/g, "_");
+  if (VALID_PROPERTY_TYPES.has(upper)) return upper as "OFFICE" | "RETAIL" | "INDUSTRIAL" | "FLEX" | "OTHER";
+  if (upper.includes("OFFICE")) return "OFFICE";
+  if (upper.includes("RETAIL") || upper.includes("SHOP")) return "RETAIL";
+  if (upper.includes("INDUSTRIAL") || upper.includes("WAREHOUSE")) return "INDUSTRIAL";
+  if (upper.includes("FLEX")) return "FLEX";
+  return "OFFICE";
+}
+
+function normalizeRentStructure(value: string | undefined): "GROSS" | "NNN" | "MODIFIED_GROSS" {
+  if (!value) return "GROSS";
+  const upper = value.toUpperCase().replace(/[\s-]+/g, "_");
+  if (VALID_RENT_STRUCTURES.has(upper)) return upper as "GROSS" | "NNN" | "MODIFIED_GROSS";
+  if (upper.includes("NNN") || upper.includes("TRIPLE")) return "NNN";
+  if (upper.includes("MODIFIED")) return "MODIFIED_GROSS";
+  return "GROSS";
+}
+
+function normalizeIndustryType(value: string): IndustryType {
+  if (!value) return "GENERAL_OFFICE";
+  const upper = value.toUpperCase().replace(/[\s-]+/g, "_");
+  if (VALID_INDUSTRY_TYPES.has(upper)) return upper as IndustryType;
+  return "GENERAL_OFFICE";
+}
+
 export interface SurveyDealData {
   industry: string;
   companyName?: string;
@@ -52,7 +85,8 @@ export async function createDealFromSurvey(
 ): Promise<{ dealId: string; roiOutputs: ROIOutputs }> {
   const { clientId, clientUserId, clientName, data, sourceType, dealNameSuffix, surveySessionId } = params;
 
-  const industry = data.industry as IndustryType;
+  // Normalize industry type to ensure it matches Prisma enum
+  const industry = normalizeIndustryType(data.industry);
   const benchmarks = INDUSTRY_BENCHMARKS[industry as keyof typeof INDUSTRY_BENCHMARKS]
     ?? INDUSTRY_BENCHMARKS.GENERAL_OFFICE;
 
@@ -135,14 +169,28 @@ export async function createDealFromSurvey(
     furnitureIT: headcount * 3000,
   };
 
-  // Calculate ROI
-  const roiOutputs = calculateFullROI({
-    costAvoidance,
-    productivity,
-    strategic,
-    capital,
-    industryType: industry,
-    industryInputs: data.industryInputs ?? {},
+  // Calculate ROI (wrapped in try-catch for robustness)
+  let roiOutputs: ROIOutputs;
+  try {
+    roiOutputs = calculateFullROI({
+      costAvoidance,
+      productivity,
+      strategic,
+      capital,
+      industryType: industry,
+      industryInputs: data.industryInputs ?? {},
+    });
+  } catch (calcError) {
+    console.error("[createDealFromSurvey] ROI calculation failed:", calcError);
+    console.error("[createDealFromSurvey] Inputs:", JSON.stringify({ costAvoidance, productivity, strategic, capital }, null, 2));
+    throw new Error(`ROI calculation failed: ${calcError instanceof Error ? calcError.message : String(calcError)}`);
+  }
+
+  // Ensure UserProfile exists (defensive — should already exist via Client FK)
+  await prisma.userProfile.upsert({
+    where: { clerkUserId: clientUserId },
+    update: {},
+    create: { clerkUserId: clientUserId, email: "" },
   });
 
   // Create Deal + LeaseOption + IndustryProfile in a transaction
@@ -191,7 +239,7 @@ export async function createDealFromSurvey(
         dealName: `${data.companyName ?? clientName} - ${dealNameSuffix}`,
         clientName,
         clientId,
-        propertyType: (lp.preferredPropertyType as "OFFICE" | "RETAIL" | "INDUSTRIAL" | "FLEX" | "OTHER") ?? "OFFICE",
+        propertyType: normalizePropertyType(lp.preferredPropertyType),
         sourceType,
         status: "CALCULATED",
       },
@@ -210,7 +258,7 @@ export async function createDealFromSurvey(
         escalationPercent: 3.0,
         freeRentMonths,
         freeRentType: "ABATED",
-        rentStructure: (lp.preferredRentStructure as "GROSS" | "NNN" | "MODIFIED_GROSS") ?? "GROSS",
+        rentStructure: normalizeRentStructure(lp.preferredRentStructure),
         tiAllowance,
         estimatedBuildoutCost,
         discountRate: 8.0,

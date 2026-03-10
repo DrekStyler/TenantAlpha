@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { dealSchema } from "@/schemas/deal";
 import { ok, unauthorized, badRequest, forbidden, err } from "@/lib/api";
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     });
 
     const deal = await prisma.deal.create({
-      data: { ...parsed.data, userId },
+      data: { ...parsed.data, userId } as Prisma.DealUncheckedCreateInput,
     });
 
     return ok(deal, 201);

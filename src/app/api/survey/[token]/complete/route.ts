@@ -96,8 +96,12 @@ export async function POST(
   } catch (e) {
     // If a concurrent request already created the records (unique constraint),
     // return the existing data gracefully
+    const errMsg = e instanceof Error ? e.message : String(e);
     const isUniqueViolation =
-      e instanceof Error && e.message.includes("Unique constraint");
+      errMsg.includes("Unique constraint") ||
+      errMsg.includes("unique constraint") ||
+      errMsg.includes("duplicate key") ||
+      errMsg.includes("P2002");
     if (isUniqueViolation) {
       // Re-fetch: the other request likely succeeded
       const refreshed = await prisma.client.findUnique({

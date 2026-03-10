@@ -166,9 +166,16 @@ export async function createDealFromSurvey(
       },
     });
 
-    // Create industry profile (store both outputs and inputs for calculation transparency)
-    await tx.industryProfile.create({
-      data: {
+    // Upsert industry profile (handles re-runs and race conditions gracefully)
+    await tx.industryProfile.upsert({
+      where: { clientId },
+      update: {
+        industryType: industry,
+        industryInputs: JSON.parse(JSON.stringify(data.industryInputs ?? {})),
+        roiOutputs: JSON.parse(JSON.stringify(roiOutputs)),
+        roiCalcInputs: JSON.parse(JSON.stringify({ costAvoidance, productivity, strategic, capital })),
+      },
+      create: {
         clientId,
         industryType: industry,
         industryInputs: JSON.parse(JSON.stringify(data.industryInputs ?? {})),

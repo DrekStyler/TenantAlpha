@@ -52,7 +52,7 @@ export async function GET(
 }
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ dealId: string; optionId: string }> }
 ) {
   const { userId } = await auth();
@@ -68,8 +68,20 @@ export async function POST(
   });
   if (!option) return notFound("Option");
   if (option.deal.userId !== userId) return forbidden();
-  if (!option.propertyAddress) {
-    return badRequest("No property address set for this option");
+
+  // Accept address from body as fallback (handles race with form auto-save)
+  const body = await req.json().catch(() => ({})) as { address?: string };
+  const address = option.propertyAddress ?? body.address;
+  if (!address) {
+    return badRequest("No property address set for this option. Please enter an address and save first.");
+  }
+
+  // If the DB didn't have the address, persist it now
+  if (!option.propertyAddress && address) {
+    await prisma.leaseOption.update({
+      where: { id: optionId },
+      data: { propertyAddress: address },
+    });
   }
 
   // Check cache freshness
@@ -103,7 +115,7 @@ export async function POST(
   }
 
   // Geocode the address
-  const geo = await geocodeAddress(option.propertyAddress);
+  const geo = await geocodeAddress(address);
   if (!geo) {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey || apiKey === "placeholder") {

@@ -9,7 +9,8 @@ import type { LocationData, OptionLocationSummary } from "@/types/location";
  */
 export function useOptionLocation(
   dealId: string,
-  optionId: string | undefined
+  optionId: string | undefined,
+  address?: string
 ) {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,11 @@ export function useOptionLocation(
     try {
       const res = await fetch(
         `/api/deals/${dealId}/options/${optionId}/location`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: address ?? "" }),
+        }
       );
       const data = await res.json();
       if (!res.ok) {
@@ -38,7 +43,7 @@ export function useOptionLocation(
     } finally {
       setLoading(false);
     }
-  }, [dealId, optionId]);
+  }, [dealId, optionId, address]);
 
   // Load cached data on mount (GET)
   useEffect(() => {

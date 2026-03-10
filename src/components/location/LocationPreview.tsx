@@ -19,7 +19,8 @@ export function LocationPreview({
 }: LocationPreviewProps) {
   const { location, loading, error, fetchLocation } = useOptionLocation(
     dealId,
-    optionId
+    optionId,
+    address
   );
 
   // Don't render until we have a saved option with an address

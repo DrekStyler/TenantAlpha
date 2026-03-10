@@ -1,37 +1,28 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { ok, notFound, badRequest } from "@/lib/api";
-import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { tooManyRequests } from "@/lib/api";
+import { ok, notFound, unauthorized } from "@/lib/api";
 import { calculateDealComparison } from "@/engine";
 import { prismaOptionToLeaseInput } from "@/lib/mappers";
 import type { CalculationConfig } from "@/engine/types";
 
-// GET: Fetch calculated results for a completed survey (public, no auth)
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ token: string }> }
-) {
-  const { token } = await params;
-
-  const rl = checkRateLimit(`survey-results:${token}`, RATE_LIMITS.survey);
-  if (!rl.allowed) return tooManyRequests(rl.retryAfterMs);
-
+// GET: Fetch the authenticated client's ROI data
+export async function GET() {
   const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) return unauthorized();
 
+  // Find the Client record linked to this Clerk user
   const client = await prisma.client.findUnique({
-    where: { token },
+    where: { clientClerkUserId: clerkUserId },
     select: {
       id: true,
       name: true,
-      userId: true,
-      clientClerkUserId: true,
-      questionnaireCompletedAt: true,
       industry: true,
       currentHeadcount: true,
       currentAnnualRevenue: true,
       revenuePerEmployee: true,
       sfPerEmployee: true,
+      budgetConstraint: true,
+      primaryGoal: true,
       deals: {
         where: { sourceType: { in: ["AI_SURVEY", "STATIC"] } },
         take: 1,
@@ -51,38 +42,20 @@ export async function GET(
     },
   });
 
-  if (!client) return notFound("Survey");
-  if (!client.questionnaireCompletedAt) {
-    return badRequest("Survey has not been completed yet.");
-  }
-
-  // Link authenticated user to this client record (one-time, skip if broker)
-  if (clerkUserId && !client.clientClerkUserId && clerkUserId !== client.userId) {
-    try {
-      await prisma.client.update({
-        where: { id: client.id },
-        data: { clientClerkUserId: clerkUserId },
-      });
-    } catch {
-      // Unique constraint violation — this Clerk account is already linked to another client
-    }
-  }
+  if (!client) return notFound("Client profile");
 
   const deal = client.deals[0];
-  if (!deal) return notFound("Deal");
+  if (!deal) return notFound("ROI analysis");
 
-  // Calculate lease comparison results
+  // Calculate lease comparison if options exist
   let comparisonResults = null;
   if (deal.options.length >= 1) {
     const config: CalculationConfig = {
       discountingMode: { frequency: "monthly" },
       includeTIInEffectiveRent: false,
     };
-
-    // For single-option deals (AI survey), duplicate as "current vs proposed"
     const inputs = deal.options.map(prismaOptionToLeaseInput);
     if (inputs.length === 1) {
-      // Create a synthetic "Current Lease" option for comparison
       const proposed = inputs[0];
       const current = {
         ...proposed,
@@ -95,7 +68,6 @@ export async function GET(
       };
       inputs.unshift(current);
     }
-
     comparisonResults = calculateDealComparison(inputs, config);
   }
 
@@ -114,6 +86,8 @@ export async function GET(
       annualRevenue: client.currentAnnualRevenue,
       revenuePerEmployee: client.revenuePerEmployee,
       sfPerEmployee: client.sfPerEmployee,
+      budgetConstraint: client.budgetConstraint,
+      primaryGoal: client.primaryGoal,
     },
   });
 }

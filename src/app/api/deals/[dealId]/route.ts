@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { dealSchema } from "@/schemas/deal";
 import { ok, unauthorized, notFound, forbidden, badRequest } from "@/lib/api";
@@ -79,7 +80,7 @@ export async function PUT(
 
   const updated = await prisma.deal.update({
     where: { id: dealId },
-    data,
+    data: data as Prisma.DealUncheckedUpdateInput,
   });
 
   return ok(updated);

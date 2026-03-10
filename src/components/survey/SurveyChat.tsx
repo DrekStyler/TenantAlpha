@@ -156,25 +156,25 @@ export function SurveyChat({
   );
 
   const handleComplete = useCallback(async () => {
+    if (completing) return; // Prevent double-clicks
     setCompleting(true);
     setError("");
     try {
       const res = await fetch(`/api/survey/${token}/complete`, {
         method: "POST",
       });
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? "Failed to complete survey.");
+        throw new Error((result as { error?: string }).error ?? "Failed to complete survey.");
       }
-      const result = await res.json();
-      setDealId(result.dealId);
+      setDealId((result as { dealId: string }).dealId);
       setPhase("COMPLETED");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setCompleting(false);
     }
-  }, [token]);
+  }, [token, completing]);
 
   // Completed state
   if (phase === "COMPLETED" && dealId) {
@@ -256,6 +256,27 @@ export function SurveyChat({
           </div>
         )}
 
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3 shadow-sm">
+            <svg className="mt-0.5 h-5 w-5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">{error}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setError("")}
+              className="shrink-0 text-red-400 hover:text-red-600"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* Review Panel */}
         {showReview && (
           <div className="mb-4">
@@ -295,12 +316,6 @@ export function SurveyChat({
                 </div>
               </div>
             ))}
-
-            {error && (
-              <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-                {error}
-              </div>
-            )}
 
             <div ref={bottomRef} />
           </div>

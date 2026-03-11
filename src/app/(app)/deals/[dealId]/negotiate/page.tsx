@@ -7,6 +7,7 @@ import { prismaOptionToLeaseInput, type PrismaOption } from "@/lib/mappers";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { usePDFExport } from "@/hooks/usePDFExport";
+import { ProfileCompletionModal } from "@/components/onboarding/ProfileCompletionModal";
 import { calculateDealComparison } from "@/engine";
 
 interface Deal {
@@ -34,7 +35,7 @@ export default function NegotiatePage({
       )
     : null;
 
-  const { exportPDF, exporting, error: pdfError } = usePDFExport({
+  const { exportPDF, doExport, exporting, error: pdfError, showProfileModal, setShowProfileModal } = usePDFExport({
     dealId,
     calculationResults: currentResults ?? {
       options: [],
@@ -159,6 +160,15 @@ export default function NegotiatePage({
         initialInputs={initialInputs}
         optionIds={optionIds}
       />
+
+      {/* Profile completion modal for PDF export */}
+      {showProfileModal && (
+        <ProfileCompletionModal
+          onSaveAndExport={() => { setShowProfileModal(false); doExport(); }}
+          onExportAnyway={() => { setShowProfileModal(false); doExport(); }}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
     </div>
   );
 }

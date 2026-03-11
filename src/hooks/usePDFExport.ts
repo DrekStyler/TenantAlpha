@@ -12,8 +12,9 @@ interface UsePDFExportOptions {
 export function usePDFExport({ dealId, calculationResults, aiSummary }: UsePDFExportOptions) {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const exportPDF = async () => {
+  const doExport = async () => {
     setExporting(true);
     setError("");
     try {
@@ -50,5 +51,21 @@ export function usePDFExport({ dealId, calculationResults, aiSummary }: UsePDFEx
     }
   };
 
-  return { exportPDF, exporting, error };
+  const exportPDF = async () => {
+    try {
+      const profileRes = await fetch("/api/profile");
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        if (!profile.name || !profile.brokerageName) {
+          setShowProfileModal(true);
+          return;
+        }
+      }
+    } catch {
+      // If profile check fails, proceed with export anyway
+    }
+    await doExport();
+  };
+
+  return { exportPDF, doExport, exporting, error, showProfileModal, setShowProfileModal };
 }

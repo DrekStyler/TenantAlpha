@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DealTable } from "@/components/deals/DealTable";
 import type { DealRow } from "@/components/deals/DealTable";
 import { ClientTable, type ClientRow } from "@/components/clients/ClientTable";
 import { ClientModal } from "@/components/clients/ClientModal";
 import { QuestionnaireModal } from "@/components/clients/QuestionnaireModal";
+import { OnboardingCard } from "@/components/onboarding/OnboardingCard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 
+interface ProfileData {
+  name?: string | null;
+  brokerageName?: string | null;
+  onboardingCompletedAt?: string | null;
+}
+
 export function BrokerDashboard() {
+  const router = useRouter();
   const [deals, setDeals] = useState<DealRow[]>([]);
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +30,9 @@ export function BrokerDashboard() {
   const [toast, setToast] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [questionnaireClient, setQuestionnaireClient] = useState<any | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [sampleDealLoading, setSampleDealLoading] = useState(false);
+  const dismissedRef = useRef(false);
 
   const fetchDeals = async () => {
     const res = await fetch("/api/deals");
@@ -34,10 +46,45 @@ export function BrokerDashboard() {
     setClientsLoading(false);
   }, []);
 
+  const fetchProfile = useCallback(async () => {
+    const res = await fetch("/api/profile");
+    if (res.ok) setProfile(await res.json());
+  }, []);
+
   useEffect(() => {
     fetchDeals();
     fetchClients();
-  }, [fetchClients]);
+    fetchProfile();
+  }, [fetchClients, fetchProfile]);
+
+  // Auto-dismiss onboarding for existing users who already have deals
+  useEffect(() => {
+    if (profile && !profile.onboardingCompletedAt && deals.length > 0 && !loading && !dismissedRef.current) {
+      dismissedRef.current = true;
+      fetch("/api/onboarding/dismiss", { method: "POST" });
+      setProfile((prev) => prev ? { ...prev, onboardingCompletedAt: new Date().toISOString() } : prev);
+    }
+  }, [profile, deals, loading]);
+
+  const handleDismissOnboarding = useCallback(async () => {
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+    setProfile((prev) => prev ? { ...prev, onboardingCompletedAt: new Date().toISOString() } : prev);
+    await fetch("/api/onboarding/dismiss", { method: "POST" });
+  }, []);
+
+  const handleSampleDeal = useCallback(async () => {
+    setSampleDealLoading(true);
+    try {
+      const res = await fetch("/api/onboarding/sample-deal", { method: "POST" });
+      if (res.ok) {
+        const { dealId } = await res.json();
+        router.push(`/deals/${dealId}/edit`);
+      }
+    } finally {
+      setSampleDealLoading(false);
+    }
+  }, [router]);
 
   const handleDeleteDeal = async (id: string) => {
     if (!confirm("Delete this deal? This cannot be undone.")) return;
@@ -128,8 +175,22 @@ export function BrokerDashboard() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const showOnboarding = profile && !profile.onboardingCompletedAt && !loading;
+
   return (
     <div className="space-y-12">
+      {/* Onboarding Card */}
+      {showOnboarding && (
+        <OnboardingCard
+          profile={profile}
+          dealCount={deals.length}
+          clientCount={clients.length}
+          onDismiss={handleDismissOnboarding}
+          onSampleDeal={handleSampleDeal}
+          sampleDealLoading={sampleDealLoading}
+        />
+      )}
+
       {/* Deals Section */}
       <section>
         <div className="flex items-center justify-between">

@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { usePDFExport } from "@/hooks/usePDFExport";
 import { useMemoExport } from "@/hooks/useMemoExport";
 import { MemoConfigModal } from "@/components/memos/MemoConfigModal";
+import { ProfileCompletionModal } from "@/components/onboarding/ProfileCompletionModal";
 
 interface Deal {
   id: string;
@@ -36,7 +37,7 @@ export default function ResultsPage({
   const [deal, setDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
-  const { exportPDF, exporting, error: pdfError } = usePDFExport({
+  const { exportPDF, doExport, exporting, error: pdfError, showProfileModal, setShowProfileModal } = usePDFExport({
     dealId,
     calculationResults: results ?? { options: [], rankedByEffectiveRent: [], rankedByNPV: [], bestValueOption: "", bestValueReasons: [] },
   });
@@ -162,6 +163,15 @@ export default function ResultsPage({
         loading={memoExporting}
         error={memoError}
       />
+
+      {/* Profile completion modal for PDF export */}
+      {showProfileModal && (
+        <ProfileCompletionModal
+          onSaveAndExport={() => { setShowProfileModal(false); doExport(); }}
+          onExportAnyway={() => { setShowProfileModal(false); doExport(); }}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
 
       {/* Results or empty state */}
       {results ? (

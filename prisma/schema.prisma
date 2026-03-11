@@ -16,9 +16,10 @@ model UserProfile {
   name          String?
   brokerageName String?  @map("brokerage_name")
   phone         String?
-  logoUrl       String?  @map("logo_url")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  logoUrl               String?   @map("logo_url")
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   deals       Deal[]
   savedLeases SavedLease[]

@@ -11,7 +11,12 @@ export async function GET() {
     const clients = await prisma.client.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      include: { _count: { select: { deals: true } } },
+      include: {
+        _count: { select: { deals: true } },
+        surveySession: {
+          select: { phase: true, updatedAt: true, createdAt: true },
+        },
+      },
     });
 
     return ok(clients);

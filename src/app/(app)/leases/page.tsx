@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { savedLeaseSchema, type SavedLeaseFormData } from "@/schemas/lease";
@@ -32,6 +33,7 @@ interface SavedLease {
 }
 
 export default function LeasesPage() {
+  const router = useRouter();
   const [leases, setLeases] = useState<SavedLease[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -57,6 +59,12 @@ export default function LeasesPage() {
     if (res.ok) setLeases(await res.json());
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => { if (d.role === "client") router.replace("/roi"); });
+  }, [router]);
 
   useEffect(() => {
     fetchLeases();

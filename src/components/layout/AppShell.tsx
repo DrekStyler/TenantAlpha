@@ -4,10 +4,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 
-const navItems = [
+interface BrokerInfo {
+  name: string | null;
+  brokerage: string | null;
+}
+
+interface AppShellProps {
+  children: React.ReactNode;
+  userRole?: "broker" | "client";
+  brokerInfo?: BrokerInfo | null;
+}
+
+const brokerNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: "grid" },
   { href: "/leases", label: "Leases", icon: "file" },
   { href: "/profile", label: "Profile", icon: "user" },
+];
+
+const clientNavItems = [
+  { href: "/roi", label: "My Results", icon: "chart" },
+  { href: "/dashboard", label: "My Deals", icon: "grid" },
 ];
 
 function NavIcon({ icon }: { icon: string }) {
@@ -41,15 +57,18 @@ function NavIcon({ icon }: { icon: string }) {
   }
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, userRole = "broker", brokerInfo }: AppShellProps) {
   const pathname = usePathname();
+  const isClient = userRole === "client";
+  const navItems = isClient ? clientNavItems : brokerNavItems;
+  const homeHref = isClient ? "/roi" : "/dashboard";
 
   return (
     <div className="min-h-screen bg-navy-50">
       {/* Top Header */}
       <header className="sticky top-0 z-50 border-b border-navy-200 bg-white/95 backdrop-blur-sm">
         <div className="flex h-16 items-center justify-between px-4 lg:px-8">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href={homeHref} className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900">
               <span className="text-sm font-bold text-gold-400">T</span>
             </div>
@@ -63,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-[calc(100vh-4rem)]">
         {/* Desktop Sidebar */}
-        <aside className="hidden w-56 shrink-0 border-r border-navy-200 bg-white lg:block">
+        <aside className="hidden w-56 shrink-0 border-r border-navy-200 bg-white lg:flex lg:flex-col lg:justify-between">
           <nav className="flex flex-col gap-1 p-4">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href);
@@ -83,6 +102,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+
+          {/* Broker info card for clients */}
+          {isClient && brokerInfo && (brokerInfo.name || brokerInfo.brokerage) && (
+            <div className="border-t border-navy-100 p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-navy-400">
+                Your Broker
+              </p>
+              {brokerInfo.name && (
+                <p className="mt-1 text-sm font-medium text-navy-900">
+                  {brokerInfo.name}
+                </p>
+              )}
+              {brokerInfo.brokerage && (
+                <p className="text-xs text-navy-500">{brokerInfo.brokerage}</p>
+              )}
+            </div>
+          )}
         </aside>
 
         {/* Main Content */}

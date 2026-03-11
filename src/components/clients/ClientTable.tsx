@@ -1,8 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/Badge";
+import { computeSurveyStatus, type SurveyStatus } from "@/lib/survey-status";
 
-interface ClientRow {
+export interface ClientRow {
   id: string;
   name: string;
   company?: string | null;
@@ -10,9 +11,16 @@ interface ClientRow {
   industry?: string | null;
   companySize?: string | null;
   token: string;
+  tokenExpiresAt?: string | null;
   questionnaireCompletedAt?: string | null;
+  surveyMode?: string | null;
   updatedAt: string;
   _count: { deals: number };
+  surveySession?: {
+    phase: string;
+    updatedAt: string;
+    createdAt: string;
+  } | null;
 }
 
 interface ClientTableProps {
@@ -21,6 +29,7 @@ interface ClientTableProps {
   onEdit: (client: ClientRow) => void;
   onDelete: (id: string) => void;
   onViewQuestionnaire: (clientId: string) => void;
+  onRegenerateToken: (clientId: string) => void;
 }
 
 const sizeLabels: Record<string, string> = {
@@ -31,12 +40,89 @@ const sizeLabels: Record<string, string> = {
   ENTERPRISE: "200+",
 };
 
+function SurveyStatusCell({
+  status,
+  onViewQuestionnaire,
+  onRegenerateToken,
+}: {
+  status: SurveyStatus;
+  onViewQuestionnaire: () => void;
+  onRegenerateToken: () => void;
+}) {
+  switch (status.state) {
+    case "completed": {
+      const date = new Date(status.completedAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      return (
+        <button
+          type="button"
+          onClick={onViewQuestionnaire}
+          title="View questionnaire responses"
+        >
+          <Badge
+            variant="success"
+            className="cursor-pointer transition-colors hover:bg-emerald-100"
+          >
+            Completed
+          </Badge>
+          <p className="mt-0.5 text-[10px] text-navy-400">{date}</p>
+        </button>
+      );
+    }
+
+    case "in_progress":
+      return (
+        <div>
+          <Badge variant="default">In Progress</Badge>
+          <p className="mt-0.5 text-[10px] text-navy-400">
+            {status.phaseLabel}
+          </p>
+          <p className="text-[10px] text-navy-400">{status.lastActivity}</p>
+        </div>
+      );
+
+    case "expired":
+      return (
+        <div>
+          <Badge variant="error">Expired</Badge>
+          <button
+            type="button"
+            onClick={onRegenerateToken}
+            className="mt-0.5 block text-[10px] font-medium text-navy-600 underline decoration-navy-300 hover:text-navy-900"
+          >
+            Regenerate
+          </button>
+        </div>
+      );
+
+    case "pending": {
+      const expiryWarning =
+        status.daysUntilExpiry !== null && status.daysUntilExpiry <= 7;
+      return (
+        <div>
+          <Badge variant="warning">Pending</Badge>
+          {status.daysUntilExpiry !== null && (
+            <p
+              className={`mt-0.5 text-[10px] ${expiryWarning ? "font-medium text-amber-600" : "text-navy-400"}`}
+            >
+              Expires in {status.daysUntilExpiry}d
+            </p>
+          )}
+        </div>
+      );
+    }
+  }
+}
+
 export function ClientTable({
   clients,
   onCopyLink,
   onEdit,
   onDelete,
   onViewQuestionnaire,
+  onRegenerateToken,
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
@@ -67,7 +153,7 @@ export function ClientTable({
               Deals
             </th>
             <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-navy-500">
-              Questionnaire
+              Survey
             </th>
             <th className="px-4 py-3 pr-5 text-right text-xs font-semibold uppercase tracking-wide text-navy-500">
               Actions
@@ -75,81 +161,73 @@ export function ClientTable({
           </tr>
         </thead>
         <tbody>
-          {clients.map((client) => (
-            <tr
-              key={client.id}
-              className="group border-b border-navy-100/60 transition-colors hover:bg-navy-50/40"
-            >
-              <td className="py-3.5 pl-5 pr-3">
-                <div>
-                  <span className="font-medium text-navy-900">
-                    {client.name}
-                  </span>
-                  {client.company && (
-                    <p className="mt-0.5 text-xs text-navy-500">{client.company}</p>
-                  )}
-                  {client.email && (
-                    <p className="text-xs text-navy-400">{client.email}</p>
-                  )}
-                </div>
-              </td>
-              <td className="px-4 py-3.5 text-navy-600">
-                {client.industry || "\u2014"}
-              </td>
-              <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
-                {client.companySize
-                  ? sizeLabels[client.companySize] || client.companySize
-                  : "\u2014"}
-              </td>
-              <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
-                {client._count.deals}
-              </td>
-              <td className="px-4 py-3.5 text-center">
-                {client.questionnaireCompletedAt ? (
-                  <button
-                    type="button"
-                    onClick={() => onViewQuestionnaire(client.id)}
-                    title="View questionnaire responses"
-                  >
-                    <Badge
-                      variant="success"
-                      className="cursor-pointer transition-colors hover:bg-emerald-100"
+          {clients.map((client) => {
+            const status = computeSurveyStatus(client);
+            return (
+              <tr
+                key={client.id}
+                className="group border-b border-navy-100/60 transition-colors hover:bg-navy-50/40"
+              >
+                <td className="py-3.5 pl-5 pr-3">
+                  <div>
+                    <span className="font-medium text-navy-900">
+                      {client.name}
+                    </span>
+                    {client.company && (
+                      <p className="mt-0.5 text-xs text-navy-500">{client.company}</p>
+                    )}
+                    {client.email && (
+                      <p className="text-xs text-navy-400">{client.email}</p>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3.5 text-navy-600">
+                  {client.industry || "\u2014"}
+                </td>
+                <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
+                  {client.companySize
+                    ? sizeLabels[client.companySize] || client.companySize
+                    : "\u2014"}
+                </td>
+                <td className="px-4 py-3.5 text-center tabular-nums text-navy-600">
+                  {client._count.deals}
+                </td>
+                <td className="px-4 py-3.5 text-center">
+                  <SurveyStatusCell
+                    status={status}
+                    onViewQuestionnaire={() => onViewQuestionnaire(client.id)}
+                    onRegenerateToken={() => onRegenerateToken(client.id)}
+                  />
+                </td>
+                <td className="px-4 py-3.5 pr-5 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onCopyLink(client.token)}
+                      className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
+                      title="Copy questionnaire link"
                     >
-                      Completed
-                    </Badge>
-                  </button>
-                ) : (
-                  <Badge variant="warning">Pending</Badge>
-                )}
-              </td>
-              <td className="px-4 py-3.5 pr-5 text-right">
-                <div className="flex items-center justify-end gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => onCopyLink(client.token)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
-                    title="Copy questionnaire link"
-                  >
-                    Link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEdit(client)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(client.id)}
-                    className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                      Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEdit(client)}
+                      className="rounded-md px-2.5 py-1.5 text-xs font-medium text-navy-600 transition-colors hover:bg-navy-100 hover:text-navy-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(client.id)}
+                      className="rounded-md px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -59,7 +59,9 @@ export function SurveyChat({
   const [showReview, setShowReview] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [dealId, setDealId] = useState<string | null>(null);
+  const [showTextInput, setShowTextInput] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,6 +74,13 @@ export function SurveyChat({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Focus textarea when "Other..." is clicked
+  useEffect(() => {
+    if (showTextInput) {
+      textInputRef.current?.focus();
+    }
+  }, [showTextInput]);
 
   const sendMessage = useCallback(
     async (messageText?: string) => {
@@ -93,6 +102,7 @@ export function SurveyChat({
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       if (!messageText) setInput("");
       setIsLoading(true);
+      setShowTextInput(false);
       setError("");
 
       try {
@@ -320,69 +330,72 @@ export function SurveyChat({
             <div ref={bottomRef} />
           </div>
 
-          {/* Multiple Choice Buttons */}
-          {phase !== "COMPLETED" && !showReview && nonOtherChoices.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2 border-t border-navy-100 pt-3">
-              {nonOtherChoices.map((choice) => (
-                <button
-                  key={choice.letter}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => sendMessage(`${choice.letter}) ${choice.text}`)}
-                  className="rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-medium text-navy-700 transition-colors hover:border-navy-400 hover:bg-navy-50 disabled:opacity-50"
+          {/* Input Area */}
+          {phase !== "COMPLETED" && !showReview && (
+            <div className="mt-3 border-t border-navy-100 pt-3">
+              {isLoading ? (
+                <div className="flex justify-center py-2">
+                  <Spinner size="sm" />
+                </div>
+              ) : nonOtherChoices.length > 0 && !showTextInput ? (
+                <div className="flex flex-wrap gap-2">
+                  {nonOtherChoices.map((choice) => (
+                    <button
+                      key={choice.letter}
+                      type="button"
+                      onClick={() => sendMessage(`${choice.letter}) ${choice.text}`)}
+                      className="rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-medium text-navy-700 transition-colors hover:border-navy-400 hover:bg-navy-50"
+                    >
+                      {choice.letter}) {choice.text}
+                    </button>
+                  ))}
+                  {hasOtherOption && (
+                    <button
+                      type="button"
+                      onClick={() => setShowTextInput(true)}
+                      className="rounded-lg border border-dashed border-navy-300 bg-white px-3 py-1.5 text-xs font-medium text-navy-500 transition-colors hover:border-navy-400 hover:bg-navy-50"
+                    >
+                      Other...
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => sendMessage("Skip — use the industry average")}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-navy-400 transition-colors hover:text-navy-600 hover:bg-navy-50"
+                  >
+                    Skip
+                  </button>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex items-end gap-3"
                 >
-                  {choice.letter}) {choice.text}
-                </button>
-              ))}
-              {hasOtherOption && (
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => {
-                    const textarea = document.querySelector("textarea");
-                    textarea?.focus();
-                  }}
-                  className="rounded-lg border border-dashed border-navy-300 bg-white px-3 py-1.5 text-xs font-medium text-navy-500 transition-colors hover:border-navy-400 hover:bg-navy-50 disabled:opacity-50"
-                >
-                  Other...
-                </button>
+                  <textarea
+                    ref={textInputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your answer..."
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit();
+                      }
+                    }}
+                    className="flex-1 resize-none rounded-lg border border-navy-200 px-3.5 py-2.5 text-sm text-navy-800 placeholder:text-navy-400 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!input.trim()}
+                    className="shrink-0"
+                  >
+                    Send
+                  </Button>
+                </form>
               )}
             </div>
-          )}
-
-          {/* Text Input */}
-          {phase !== "COMPLETED" && !showReview && (
-            <form
-              onSubmit={handleSubmit}
-              className="mt-3 flex items-end gap-3 border-t border-navy-200 pt-3"
-            >
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  nonOtherChoices.length > 0
-                    ? "Or type your own answer..."
-                    : "Type your answer..."
-                }
-                rows={1}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-                className="flex-1 resize-none rounded-lg border border-navy-200 px-3.5 py-2.5 text-sm text-navy-800 placeholder:text-navy-400 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500"
-              />
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isLoading || !input.trim()}
-                loading={isLoading}
-                className="shrink-0"
-              >
-                Send
-              </Button>
-            </form>
           )}
         </div>
 

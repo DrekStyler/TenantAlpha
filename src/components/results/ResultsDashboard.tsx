@@ -22,21 +22,25 @@ interface ResultsDashboardProps {
   roiOutputs?: ROIOutputs | null;
   industryType?: string | null;
   initialTab?: Tab;
+  showLocationTab?: boolean;
 }
 
-function buildTabs(hasROI: boolean) {
-  const tabs = ["Summary", "Cash Flows", "Comparison"] as const;
-  if (hasROI) {
-    return [...tabs, "ROI Analysis", "AI Assistant", "Location"] as const;
-  }
-  return [...tabs, "AI Assistant", "Location"] as const;
+function buildTabs(hasROI: boolean, showLocation: boolean) {
+  const core = hasROI
+    ? (["ROI Analysis", "Summary", "Cash Flows", "Comparison"] as const)
+    : (["Summary", "Cash Flows", "Comparison"] as const);
+  const extras = showLocation
+    ? (["AI Assistant", "Location"] as const)
+    : (["AI Assistant"] as const);
+  return [...core, ...extras];
 }
 
 type Tab = "Summary" | "Cash Flows" | "Comparison" | "ROI Analysis" | "AI Assistant" | "Location";
 
-export function ResultsDashboard({ dealId, dealName, results, roiOutputs, industryType, initialTab }: ResultsDashboardProps) {
-  const TABS = buildTabs(!!roiOutputs);
-  const resolvedInitial = initialTab && (TABS as readonly string[]).includes(initialTab) ? initialTab : "Summary";
+export function ResultsDashboard({ dealId, dealName, results, roiOutputs, industryType, initialTab, showLocationTab = true }: ResultsDashboardProps) {
+  const TABS = buildTabs(!!roiOutputs, showLocationTab);
+  const defaultTab: Tab = roiOutputs ? "ROI Analysis" : "Summary";
+  const resolvedInitial = initialTab && (TABS as readonly string[]).includes(initialTab) ? initialTab : defaultTab;
   const [activeTab, setActiveTab] = useState<Tab>(resolvedInitial);
 
   return (

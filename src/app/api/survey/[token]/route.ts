@@ -197,9 +197,16 @@ ${surveyContext}`;
 
           // Lease preferences (merge deeply)
           if (extractedFields.leasePreferences) {
+            // Safety net: if preferredTerm looks like years (≤ 30), convert to months.
+            // Commercial leases are typically 1-30 years; values ≤ 30 are almost
+            // certainly years even if the AI forgot to convert.
+            const lp = { ...extractedFields.leasePreferences };
+            if (lp.preferredTerm != null && lp.preferredTerm > 0 && lp.preferredTerm <= 30) {
+              lp.preferredTerm = lp.preferredTerm * 12;
+            }
             merged.leasePreferences = {
               ...(merged.leasePreferences ?? {}),
-              ...extractedFields.leasePreferences,
+              ...lp,
             };
           }
 

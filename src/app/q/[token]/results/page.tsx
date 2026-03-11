@@ -135,6 +135,8 @@ export default function SurveyResultsPage({
             results={data.comparisonResults}
             roiOutputs={data.roiOutputs}
             industryType={data.industryType}
+            initialTab={data.roiOutputs ? "ROI Analysis" : undefined}
+            showLocationTab={false}
           />
         ) : data.roiOutputs ? (
           <div className="mb-6">

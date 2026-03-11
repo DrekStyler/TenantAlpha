@@ -4,6 +4,11 @@ import type { CostAvoidanceInput, ProductivityInput, StrategicInput, CapitalInpu
 import type { IndustryType, ROIOutputs } from "@/types/survey";
 import { INDUSTRY_BENCHMARKS } from "@/engine/roi/benchmarks";
 
+// ─── Minimum Floors (prevent zero/meaningless calculations) ─────
+const MIN_RENTABLE_SF = 1000;
+const MIN_BASE_RENT_Y1 = 10; // $/SF/year
+const MIN_TERM_MONTHS = 12;
+
 // ─── Enum Validators ─────────────────────────────────────────────
 
 const VALID_PROPERTY_TYPES = new Set(["OFFICE", "RETAIL", "INDUSTRIAL", "FLEX", "OTHER"]);
@@ -95,14 +100,14 @@ export async function createDealFromSurvey(
   const annualRevenue = data.annualRevenue ?? headcount * (("avgRevenuePerEmployee" in benchmarks ? benchmarks.avgRevenuePerEmployee as number : 250_000));
   const revenuePerEmployee = data.revenuePerEmployee ?? annualRevenue / headcount;
   const sfPerEmployee = data.sfPerEmployee ?? ("avgSFPerEmployee" in benchmarks ? benchmarks.avgSFPerEmployee as number : 180);
-  const rentableSF = headcount * sfPerEmployee;
-  const termMonths = data.leasePreferences?.preferredTerm ?? 60;
+  const rentableSF = Math.max(MIN_RENTABLE_SF, headcount * sfPerEmployee);
+  const termMonths = Math.max(MIN_TERM_MONTHS, data.leasePreferences?.preferredTerm ?? 60);
   const avgSalary = data.avgEmployeeSalary ?? ("avgEmployeeSalary" in benchmarks ? benchmarks.avgEmployeeSalary as number : 75_000);
   const turnover = data.currentEmployeeTurnover ?? ("avgTurnoverRate" in benchmarks ? (benchmarks.avgTurnoverRate as number) * 100 : 15);
 
   // Lease defaults
   const lp = data.leasePreferences ?? {};
-  const baseRentY1 = lp.maxBaseRent ?? 35;
+  const baseRentY1 = Math.max(MIN_BASE_RENT_Y1, lp.maxBaseRent ?? 35);
   const tiAllowance = lp.tiExpectation ?? rentableSF * 40;
   const freeRentMonths = lp.freeRentExpectation ?? 3;
   const estimatedBuildoutCost = rentableSF * 60;
@@ -250,7 +255,7 @@ export async function createDealFromSurvey(
       data: {
         dealId: deal.id,
         sortOrder: 0,
-        optionName: "Proposed Lease",
+        optionName: "Potential New Lease",
         rentableSF,
         termMonths,
         baseRentY1,

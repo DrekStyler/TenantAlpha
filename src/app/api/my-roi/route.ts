@@ -55,6 +55,14 @@ export async function GET() {
       includeTIInEffectiveRent: false,
     };
     const inputs = deal.options.map(prismaOptionToLeaseInput);
+
+    // Defense-in-depth: enforce minimum floors on all inputs
+    for (const input of inputs) {
+      input.rentableSF = Math.max(1000, input.rentableSF);
+      input.baseRentY1 = Math.max(10, input.baseRentY1);
+      input.termMonths = Math.max(12, input.termMonths);
+    }
+
     if (inputs.length === 1) {
       const proposed = inputs[0];
       const current = {
